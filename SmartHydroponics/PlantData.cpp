@@ -122,7 +122,7 @@ void PlantData::updateOLED(float avgcurrentLevel, float sensLevel, float temp) {
   sendPData(dat);
   //dat = "Temp: " + String(temp) + "C";
  // sendPData(dat);
-  String daysLeft = "NotRdy";
+  String daysLeft;
   if (daysUntilEmpty != 9999) {
     if (daysUntilEmpty > 1) {
       daysLeft = String(daysUntilEmpty);
@@ -131,7 +131,7 @@ void PlantData::updateOLED(float avgcurrentLevel, float sensLevel, float temp) {
   }
   dat = "Refill ";
   
-  if (daysLeft != "N/A" and daysLeft != "NOW!") {
+  if (daysLeft != "NOW!") {
     //If there are more than one day remaining, format message accordingly
       dat += "in " + daysLeft + " days";  
   } else {

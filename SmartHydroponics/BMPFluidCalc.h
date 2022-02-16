@@ -19,7 +19,7 @@ class BMPFluidCalc {
     void calc_Avgs();
     void calcFluidLevelAvg();
     void calcFluidLevel();
-    void reportData(float pressureAmt[2], float temp);
+    void reportData(float pressureAmt[2]);
     void calibrateMinLvl(DualBMP *dbmp);
     void calibrateMaxLvl(DualBMP *dbmp);
 };
