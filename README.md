@@ -3,7 +3,9 @@ Arduino project utilizing barometric pressure sensors to create a "smart" hydrop
 
 If you're a company looking into this code, offer me a job!
 
-![Prototype Smart Hydroponics arduino nano unit](https://raw.githubusercontent.com/an0mali/SmartHydroponics/main/smartHP.jpg)
+![Prototype Smart Hydroponics arduino nano unit](https://github.com/an0mali/SmartHydroponics/blob/main/SmartHPFull.jpg)
+
+![Prototype Smart Hydroponics arduino nano unit](https://github.com/an0mali/SmartHydroponics/blob/main/SmartHPClose.jpg)
 ## Current Features include:
 
 - OLED display showing runtime, fluid level, temperature, and days left until refill.
