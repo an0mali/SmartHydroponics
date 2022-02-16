@@ -19,7 +19,7 @@ Arduino project utilizing barometric pressure sensors to create a "smart" hydrop
 - Airstone Pump and airstone
 - Arduino microSD card module
 
-## Future Releases//TODO Note:
+## Future//TODO Note:
 - Better balance of code between both arduino units (second arduino was afterthought addition once I ran out of memory)
 - Memory Opt: Maybe convert floats to ints by x100m then /100 to use when accuracy isnt needed and float is stored in global scope?
 - Implement software based air pump control
