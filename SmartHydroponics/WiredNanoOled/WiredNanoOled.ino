@@ -1,3 +1,5 @@
+//Essentially just converts a nano with an adafruit display into a serial monitor, communicated with by PlantData.cpp
+
 #include <SoftwareSerial.h>
 SoftwareSerial link(2, 3); // Rx, Tx
 #include <SPI.h>
