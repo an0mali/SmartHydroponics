@@ -26,5 +26,5 @@ If you're a company looking into this code, offer me a job!
 - Better balance of code between both arduino units (second arduino was afterthought addition once I ran out of memory)
 - Memory Opt: Maybe convert floats to ints by x100m then /100 to use when accuracy isnt needed and float is stored in global scope?
 - Implement software based air pump control
-
+- CSV Sdcard output (may require moving SDcard module to display arduino due to memory limitations)
  Please do not redistribute without credit.
