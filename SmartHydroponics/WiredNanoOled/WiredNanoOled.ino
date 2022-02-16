@@ -54,11 +54,11 @@ void drawChars(char* strmes) {
   int meslen = strlen(strmes);
   
   xpos += meslen;
-  if (xpos >= 128) {
+  if (xpos >= 127) {
     ypos += 8;
     display.setCursor(0,ypos);
   } else
-  if (ypos >= 64) {
+  if (ypos >= 63) {
     display.clearDisplay();
     display.setCursor(0,0);
   };
