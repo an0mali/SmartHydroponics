@@ -1,0 +1,181 @@
+//Record, monitor, and display plant data.
+#include "PlantData.h"
+#include <Arduino.h>
+#include "SDCRW.h"
+#include <SoftwareSerial.h>
+
+SoftwareSerial link(2, 3);
+SDCRW sdcrw;// SDcard data r/w class
+
+
+
+long day = 86400000; // 86400000 milliseconds in a day
+long hour = 3600000; // 3600000 milliseconds in an hour
+long minute = 60000; // 60000 milliseconds in a minute
+long second =  1000; // 1000 milliseconds in a second
+
+int elapsedHours = 0;
+int elapsedDays = 0;
+
+float hourFAvgTotal = 0.0; //every 4 hours calculate average level during that period
+int hourFAvgDiv = 0;
+int hourFCount = 0;//ticks up by 1 each hour, until ==4 at which point we call doHourFour()
+float prevFourHourAvg;
+
+//consumeRate is liquid consumption over 24 hours as calculated based on differences between previous two 4-hour periods
+//as execute in doHourFour()
+int daysUntilEmpty = 9999;//set to 9999 as a marker that it has not yet been calc'd, as <1 will be used to indicate refill is needed now
+float consumeRate = 0.0;
+float prevConsumeRate = 0.0;
+
+float consumeLevel = 1.0;//Stores hourly avg level data for rate consumption calcuation
+float prevConsumeLevel = 1.0;
+
+float FluidLevel;//storage for previously passed values, because display and timer intervals may be asyncronous
+float Temp;
+
+PlantData::PlantData() {
+  
+}
+
+void PlantData::init_PlantData() {
+ delay(500);
+ link.begin(9600);
+ link.println("!");
+ link.println("Link established.");
+ sdcrw.init_SDC();//initialize SD card
+ sdcrw.writeData("SDCard initialized");
+ //link.println("Calibrating...");
+ 
+}
+
+String PlantData::getRuntime() {
+
+  //Gets current runtime in days, hours, seconds, return as string. Maybe change to char array?
+  //This will need to be modified to get around nano 47 day or so limit
+  long timeNow = millis();
+    
+  int days = timeNow / day ;                                //number of days
+  int hours = (timeNow % day) / hour;                       //the remainder from days division (in milliseconds) divided by hours, this gives the full hours
+  int minutes = ((timeNow % day) % hour) / minute ;         //and so on...
+  int seconds = (((timeNow % day) % hour) % minute) / second;
+
+  if (hours > elapsedHours) {
+    elapsedHours = hours;
+    doHourly();
+  };
+  if (days > elapsedDays) {
+    elapsedDays = days;
+    doDaily();
+  };
+
+  String rTime = String(days) + "d " + String(hours) + "h " + String(minutes) + "m " + String(seconds) + "s";
+  //String rTime = "Uptime: " + String(runTime / 1000);
+  return rTime;
+}
+
+void PlantData::doFifteen() {
+  //call this via PlantMP at its 15 minute check interval
+  hourFAvgTotal += FluidLevel;
+  hourFAvgDiv++;
+}
+
+void PlantData::doDaily() {
+  //probably going to do some sort of daily reporting here
+}
+
+void PlantData::doHourly(){
+  hourFCount++;
+  if (hourFCount == 4) {
+    hourFCount = 0;
+    doHourFour();
+  };
+  recordPlantData();
+}
+
+  
+void PlantData::doHourFour() {
+  //Calculate consum rates based on four hour averages here, call via doHourly()
+  float fourHourAvg = hourFAvgTotal / hourFAvgDiv;
+
+  if (prevFourHourAvg != 0) {
+    //as percentage of container max volume - container min volume (set during calibration)
+    //calc
+    float consumeFRate= prevFourHourAvg - fourHourAvg;//loss over 4 hours
+    prevConsumeRate = consumeRate;
+    consumeRate = consumeFRate * 6;//convert to loss over one day, should help amplify changes in uptake that could help ID problems
+    //is also useful for more things
+
+    daysUntilEmpty = 100 / consumeRate;
+    
+    //
+  };
+}
+
+void PlantData::updateOLED(float avgcurrentLevel, float sensLevel, float temp) {
+  FluidLevel = avgcurrentLevel;
+  Temp = temp;
+
+  
+  sendPData("!");
+  String dat = getStrDat();
+  sendPData(dat);
+  //dat = "Temp: " + String(temp) + "C";
+ // sendPData(dat);
+  String daysLeft = "NotRdy";
+  if (daysUntilEmpty != 9999) {
+    if (daysUntilEmpty > 1) {
+      daysLeft = String(daysUntilEmpty);
+  } else {
+    daysLeft = "NOW!";
+  }
+  dat = "Refill ";
+  
+  if (daysLeft != "N/A" and daysLeft != "NOW!") {
+    //If there are more than one day remaining, format message accordingly
+      dat += "in " + daysLeft + " days";  
+  } else {
+    dat += daysLeft;
+  };
+  
+  sendPData(dat);
+};
+}
+
+void PlantData::sendPData(String dat, bool endLine=true) {
+  //Serial.println("Sending: " + dat);
+  if (endLine) {
+  link.println(dat);
+  } else {
+    link.print(dat + "&");
+  };
+  delay(100);
+}
+
+String PlantData::getStrDat() {
+  String dat = getRuntime();
+  dat += "\n\nFluid Level: " + String(FluidLevel * 100) + "%" + "\nTemp: " + String(Temp) + "C" ;
+  String consume = String(consumeRate);
+  if (consumeRate == 0) {
+    consume = "NotRdy";
+  };
+  dat += "\nConsumption: " + consume;
+  if (consumeRate != 0 and prevConsumeRate != 0) {
+    if (consumeRate > prevConsumeRate) {
+      dat += " :)";
+    } else {
+      dat += " :'(";
+    };
+    };
+  
+  dat += "\n";
+  
+  return dat;
+}
+
+void PlantData::recordPlantData(){ //, float intervalavg) {
+
+  String dat = getStrDat();
+  dat.replace("\n", "\t");
+  sdcrw.writeData(dat);
+}
