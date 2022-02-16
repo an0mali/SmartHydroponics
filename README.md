@@ -1,5 +1,7 @@
 # SmartHydroponics
-Arduino project utilizing barometric pressure sensors to create a "smart" hydroponic airstone pump that easily adds smart features to other dumb containers. This includes plant health monitoring and detailed data logging. If you're a company looking into this code, offer me a job!
+Arduino project utilizing barometric pressure sensors to create a "smart" hydroponic airstone pump that easily adds smart features to other dumb containers. This includes plant health monitoring and detailed data logging. For more information on wiring and sensor set up, join my discord: https://discord.gg/wsmSfeu
+
+If you're a company looking into this code, offer me a job!
 
 ![Prototype Smart Hydroponics arduino nano unit](https://raw.githubusercontent.com/an0mali/SmartHydroponics/main/smartHP.jpg)
 ## Current Features include:
