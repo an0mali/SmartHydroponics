@@ -14,8 +14,8 @@ const int readLevelSamples = 16;
 
 float actualLevel = 1.0;
 
-const int emptyWait = 30;//60;// time in seconds to wait before calulating empty fluid levels
-const int fullWait[2] = {0, 30}; // {mins, seconds}
+const int emptyWait = 10;//60;// time in seconds to wait before calulating empty fluid levels
+const int fullWait[2] = {0, 10}; // {mins, seconds}
 // These pressures should be mostly dependent on the container and should only need to be calibrated once, then reloaded.
 float emptyPressure = 0;// 1.3;
 float fullPressure = 0;//4.2;
@@ -23,6 +23,7 @@ float fullPressure = 0;//4.2;
 //We're going to try to adjust pressure measurements by temp readouts in proportion to the calibraton temp,
 // since testing seems to show if directly proportional this could be affecting accuracy
 float curTemp;
+float calibTemp;
 
 float currentPressure[readSamples];//last [int readSamples] current pressure readings, * by 100 so as to not have to use float
 int pressureIndex = 0;
@@ -87,7 +88,7 @@ void BMPFluidCalc::calibrateFluidMeter(DualBMP *dbmp, PlantData *plantdata) {
   pdata = plantdata;
 
   calibrateMinLvl(dbmp);
-  
+  calibTemp = curTemp;
   delay(50);
   calibrateMaxLvl(dbmp);
   
@@ -215,9 +216,20 @@ void BMPFluidCalc::reportData(float pressureAmt[2], float tempRead[2]) {
   float pressureDiff = pres0 - pres1;//Air pressure - Airstone line pressure
   //0 == internal sensor, 1== external sensor
   curTemp = tempRead[1];
+
+  //pressureDiff -= emptyPressure;
   
-  currentPressure[pressureIndex] = pressureDiff - emptyPressure;
+  //if (calibTemp > 0) {
+  //  pressureDiff *= (curTemp/calibTemp);
+  //};
+
+  float epress = emptyPressure;
+  //if (calibTemp > 0) {
+  //  epress * (curTemp/calibTemp);
+  //};
+  currentPressure[pressureIndex] = pressureDiff - epress;
   
+  //Maybe adjust this by calibration temperature reading of sensor 0?
   calc_Avgs();
 
   pressureIndex++;

@@ -21,7 +21,7 @@ class DualBMP {
     float pressure(int32_t b5, int sensnr);
     
     const uint8_t oss = 3;                      // Set oversampling setting
-    const uint8_t osd = 26;                     // with corresponding oversampling delay
+    const uint8_t osd = 28;                     // with corresponding oversampling delay
     int16_t  ac1[2], ac2[2], ac3[2], b1[2], b2[2], mb[2], mc[2], md[2]; // Store sensor PROM values from BMP180
     uint16_t ac4[2], ac5[2], ac6[2];                     // Store sensor PROM values from BMP180 
     
