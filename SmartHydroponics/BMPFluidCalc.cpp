@@ -47,6 +47,7 @@ const int buttonPin = 5;
 bool newData = false;
 float prevPressure = 999.9;
 
+
 PlantData *pdata;
 
 BMPFluidCalc::BMPFluidCalc() {
@@ -209,21 +210,42 @@ void BMPFluidCalc::calcFluidLevel() {
 };
 
 void BMPFluidCalc::reportData(float pressureAmt[2], float tempRead[2]) {
-  float pres0 = pressureAmt[0];
-  float pres1 = pressureAmt[1];
-
   //Adjust each pressure reading for relative temperature changes that may have occured since calibration
 
   
-  float pressureDiff = pres0- pres1;//Air pressure - Airstone line pressure
+  float pressureDiff = pressureAmt[0]- pressureAmt[1];//Air pressure - Airstone line pressure
   //0 == internal sensor, 1== external sensor
   curTemp = tempRead[0];
 
+  //Long-term "drift" issue, might be caused by temperature difference from time of calibration to measurement time,
+  // so lets try to compensate for it?
+  //if (calibTemp > 0) {
+  //pressureDiff *= (curTemp/calibTemp);//reduce pressure difference in proportion to atmospheric pressure difference?
+  //};
+  /*calibTemp/curTemp seemed to have variation of +/- 3% but steady over 8 hours
+  
+  If temp increases, pressure decreases. As such, pressureDiff and emptyPressure needs to be decreased in proportion to 
+   maintime longterm accuracy? But this seems to be opposite of testing results? Also, reading "external" sensor temperature and
+   making any adjustment in proportion of this seems to obviously decrease accuracy. 
+  
+  Temperature increase casuses fluid to expand, increasing backpressure? Maybe we need to adjust by water thermal expansion rate per
+  degree C?
+
+  "In a closed or "water-solid" water heating system, thermal expansion pressure equals approximately 2.5 % of volume for every 100°F rise."
+  ^this should mean such an adjustment should be neglibile/not needed. If it is needed, it should be applied to emptyPressure as well
+  (100C ~4%, so 1C ~.04%)
+  
+  so every 1C should affect reading accuracy by roughly .08% per degree C if baseline level is 250mL and max level is 500mL
+  This should be completely negligible
+  
+  Second sensor *should* already eliminate general atmospheric differences due to high/low pressure
+   (storm) systems.
+
+  increase accuracy by increasing "empty" waterline? (more back pressure == more consistent reading of baseline pressure?)
+  
+  */
+  
   pressureDiff -= emptyPressure;
- 
-  if (calibTemp > 0) {
-  pressureDiff *= (calibTemp / curTemp);//reduce pressure difference in proportion to atmospheric pressure difference?
-  };
   
   currentPressure[pressureIndex] = pressureDiff;
   
