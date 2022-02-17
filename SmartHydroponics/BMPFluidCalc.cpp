@@ -6,7 +6,7 @@
 //Liquid meter uses the pressure difference between the atmosphere and a water tower to
 // [precisely?] measure the amount of liquid remaining, and rate of loss, in a system over time
 
-const int readSamples = 16; //how many pressure samples to average out, typically > is more accurate but slower to update. 16 is tested works well
+const int readSamples = 16; //how many pressure samples to average out, > is more accurate but slower to update. 16 is tested works well
 const int readLevelSamples = 16;
 
 //int readTotalPhases = 0;
@@ -14,8 +14,8 @@ const int readLevelSamples = 16;
 
 float actualLevel = 1.0;
 
-const int emptyWait = 10;//60;// time in seconds to wait before calulating empty fluid levels
-const int fullWait[2] = {0, 10}; // {mins, seconds}
+const int emptyWait = 15;//60;// time in seconds to wait before calulating empty fluid levels
+const int fullWait[2] = {0, 15}; // {mins, seconds}
 // These pressures should be mostly dependent on the container and should only need to be calibrated once, then reloaded.
 float emptyPressure = 0;// 1.3;
 float fullPressure = 0;//4.2;
@@ -23,7 +23,7 @@ float fullPressure = 0;//4.2;
 //We're going to try to adjust pressure measurements by temp readouts in proportion to the calibraton temp,
 // since testing seems to show if directly proportional this could be affecting accuracy
 float curTemp;
-float calibTemp;
+float calibTemp;//Record external sensor [1] calibration pressure average to itself, multiply other sensor by proportion change
 
 float currentPressure[readSamples];//last [int readSamples] current pressure readings, * by 100 so as to not have to use float
 int pressureIndex = 0;
@@ -32,6 +32,7 @@ float currentPressureMean;
 float currentFluidLevel[readLevelSamples]; //Hopefully just (currentPressureMean / fullPressureMean) * 100
 float currentFluidLevelMean = 1.0;//from 0-200, >200 is full, <100 is empty
 float sensFluidLevel = 1.0;
+
 
 const PROGMEM char calibrateMes[] = "Enable pump, fill to LOW level. Press button to continue.";
 const PROGMEM char diffMes[] = "Calculating min pressure";
@@ -91,9 +92,10 @@ void BMPFluidCalc::calibrateFluidMeter(DualBMP *dbmp, PlantData *plantdata) {
   calibTemp = curTemp;
   delay(50);
   calibrateMaxLvl(dbmp);
-  
-  
 }
+
+
+
 
 void BMPFluidCalc::calibrateMinLvl(DualBMP *dbmp) {
 
@@ -213,21 +215,17 @@ void BMPFluidCalc::reportData(float pressureAmt[2], float tempRead[2]) {
   //Adjust each pressure reading for relative temperature changes that may have occured since calibration
 
   
-  float pressureDiff = pres0 - pres1;//Air pressure - Airstone line pressure
+  float pressureDiff = pres0- pres1;//Air pressure - Airstone line pressure
   //0 == internal sensor, 1== external sensor
-  curTemp = tempRead[1];
+  curTemp = tempRead[0];
 
-  //pressureDiff -= emptyPressure;
+  pressureDiff -= emptyPressure;
+ 
+  if (calibTemp > 0) {
+  pressureDiff *= (calibTemp / curTemp);//reduce pressure difference in proportion to atmospheric pressure difference?
+  };
   
-  //if (calibTemp > 0) {
-  //  pressureDiff *= (curTemp/calibTemp);
-  //};
-
-  float epress = emptyPressure;
-  //if (calibTemp > 0) {
-  //  epress * (curTemp/calibTemp);
-  //};
-  currentPressure[pressureIndex] = pressureDiff - epress;
+  currentPressure[pressureIndex] = pressureDiff;
   
   //Maybe adjust this by calibration temperature reading of sensor 0?
   calc_Avgs();
