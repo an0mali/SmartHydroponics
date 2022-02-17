@@ -2,7 +2,7 @@
 Arduino project utilizing barometric pressure sensors to create a "smart" hydroponic airstone pump that easily adds smart features to other dumb containers. This includes plant health monitoring and detailed data logging. 
 
 The project depends on a proprietary volumetric measurement concept that utilizes a difference in the readings of two barometric pressure sensors to determine fluid level remaining after the container's min/max levels have been calibrate.
-Under certain conditions this method has obtained precision levels of +/- 0.5% on 250mL
+Under certain conditions this method has obtained precision levels of +/- 0.7% on 275mL
 
 For more information on this project, join my discord: https://discord.gg/wsmSfeu
 
