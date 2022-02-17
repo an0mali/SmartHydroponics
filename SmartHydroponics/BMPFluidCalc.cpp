@@ -23,7 +23,6 @@ float fullPressure = 0;//4.2;
 //We're going to try to adjust pressure measurements by temp readouts in proportion to the calibraton temp,
 // since testing seems to show if directly proportional this could be affecting accuracy
 float curTemp;
-float calibTemp;//Record external sensor [1] calibration pressure average to itself, multiply other sensor by proportion change
 
 float currentPressure[readSamples];//last [int readSamples] current pressure readings, * by 100 so as to not have to use float
 int pressureIndex = 0;
@@ -90,9 +89,11 @@ void BMPFluidCalc::calibrateFluidMeter(DualBMP *dbmp, PlantData *plantdata) {
   pdata = plantdata;
 
   calibrateMinLvl(dbmp);
-  calibTemp = curTemp;
   delay(50);
   calibrateMaxLvl(dbmp);
+
+  // add function to detect when liquid has settled and apply a modifier to bring that point to 100% to compensate for final calibration
+  // inaccuracies
 }
 
 
@@ -101,9 +102,6 @@ void BMPFluidCalc::calibrateFluidMeter(DualBMP *dbmp, PlantData *plantdata) {
 void BMPFluidCalc::calibrateMinLvl(DualBMP *dbmp) {
 
   //Fluid at mininum level and pump on before init BMP sensors
-
-
-
   String mes = ProgMemStr().getStr(calibrateMes);
   pdata -> sendPData(mes);
   inputPause();
@@ -152,6 +150,8 @@ void BMPFluidCalc::calibrateMaxLvl(DualBMP *dbmp) {
   };
 };
 
+
+float maxComp; // U
 void BMPFluidCalc::calc_Avgs() {
   float total = 0.0;
   int divisor = 0;
@@ -204,9 +204,10 @@ void BMPFluidCalc::calcFluidLevel() {
     if (levelIndex >= readLevelSamples) {
       levelIndex = 0;
     };
+    calcFluidLevelAvg();
+    printAvgFluidLvl();
   };
-  calcFluidLevelAvg();
-  printAvgFluidLvl();
+  
 };
 
 void BMPFluidCalc::reportData(float pressureAmt[2], float tempRead[2]) {
@@ -242,7 +243,9 @@ void BMPFluidCalc::reportData(float pressureAmt[2], float tempRead[2]) {
    (storm) systems.
 
   increase accuracy by increasing "empty" waterline? (more back pressure == more consistent reading of baseline pressure?)
-  
+
+
+  //maybe take the average of min and max of averages of samples
   */
   
   pressureDiff -= emptyPressure;

@@ -16,6 +16,7 @@ long second =  1000; // 1000 milliseconds in a second
 
 int elapsedHours = 0;
 int elapsedDays = 0;
+int fifteenMinInt = 0;
 
 float hourFAvgTotal = 0.0; //every 4 hours calculate average level during that period
 int hourFAvgDiv = 0;
@@ -78,6 +79,13 @@ void PlantData::doFifteen() {
   //call this via PlantMP at its 15 minute check interval
   hourFAvgTotal += FluidLevel;
   hourFAvgDiv++;
+  fifteenMinInt++;
+  if (fifteenMinInt >= 4) {
+    fifteenMinInt = 0;
+    doHourly();
+  };
+  
+  
 }
 
 void PlantData::doDaily() {
@@ -85,11 +93,11 @@ void PlantData::doDaily() {
 }
 
 void PlantData::doHourly(){
+  recordPlantData();
   hourFCount++;
-  if (hourFCount == 4) {
-    hourFCount = 0;
-    doHourFour();
-  };
+  //if (hourFCount == 4) {
+    doHourFour();//doing this hourly for testing
+  //};
   recordPlantData();
 }
 
@@ -107,9 +115,13 @@ void PlantData::doHourFour() {
     //is also useful for more things
 
     daysUntilEmpty = 100 / consumeRate;
-    
+   
     //
   };
+  prevFourHourAvg = fourHourAvg;
+  hourFAvgTotal = 0.0;
+  hourFAvgDiv = 0;
+  hourFCount = 0;
 }
 
 void PlantData::updateOLED(float avgcurrentLevel, float sensLevel, float temp) {
@@ -175,7 +187,8 @@ String PlantData::getStrDat() {
 
 void PlantData::recordPlantData(){ //, float intervalavg) {
 
-  String dat = getStrDat();
+  String dat = getRuntime();
+  dat += getStrDat();
   dat.replace("\n", "\t");
   sdcrw.writeData(dat);
 }
