@@ -28,10 +28,7 @@ void DualBMP::beginSense() {
   Sens[1].Soss = oss;
 
   delay(500);
- // Serial.print("SCLPIN for sensor 0: "); Serial.println(Sens[0].SCLpinI);
- // Serial.print("SDAPIN for sensor 0: ");Serial.println(Sens[0].SDApinI);
- // Serial.print("SCLPIN for sensor 1: ");Serial.println(Sens[1].SCLpinI);
- // Serial.print("SDAPIN for sensor 1: ");Serial.println(Sens[1].SDApinI);
+  
   Sens[0].InitWire();
   Sens[1].InitWire();
 
@@ -46,31 +43,11 @@ void DualBMP::updateSensors() {
   //Serial.println("Update sensors");
   for (int eachsens = 0; eachsens < 2 ; eachsens++) {
     b5[eachsens] = temperature(eachsens);            // Read and calculate temperature (T)
-    P[eachsens] = pressure(b5[eachsens], eachsens);  // Read and calculate pressure (P)
+    P[eachsens] = pressure(b5[eachsens], eachsens);
+
+    // Read and calculate pressure (P),calculating sensor 1 based on sensor 0 data as attempt to increase accuracy
    // printSensorInfo(eachsens);
   };
-}
-
-//float DualBMP::getT(int sensor) {
-  //Get temperature info from a sensor and return it as a float
- // return T[sensor];
-//}
-
-//float DualBMP::getP(int sensor) {
- // return P[sensor];
-//}
-
-void DualBMP::printSensorInfo(int eachsens) {
-//  Serial.print("Sensor ");
-//  Serial.print(eachsens);
-//  Serial.print(" => ");
-//  Serial.print("Temperature: ");
-//  Serial.print(T[eachsens], 2);
-//  Serial.print(" C");
-//  Serial.print(" | Pressure: ");
-//  Serial.print(P[eachsens], 2);
-//  Serial.println(" mbar");
-
 }
 
 void DualBMP::init_SENSOR(int sensnr)
@@ -87,58 +64,7 @@ void DualBMP::init_SENSOR(int sensnr)
   mc[sensnr]  = Sens[sensnr].Get16bitFromRegister(0xBC);
   md[sensnr]  = Sens[sensnr].Get16bitFromRegister(0xBE);
 
-  if (showCalibration) {
-//  Serial.println("");
-//  Serial.print("Sensor ");  Serial.print(sensnr);  Serial.println(" calibration data:");
-//  Serial.print(F("AC1 = ")); Serial.println(ac1[sensnr]);
-//  Serial.print(F("AC2 = ")); Serial.println(ac2[sensnr]);
-//  Serial.print(F("AC3 = ")); Serial.println(ac3[sensnr]);
-//  Serial.print(F("AC4 = ")); Serial.println(ac4[sensnr]);
-//  Serial.print(F("AC5 = ")); Serial.println(ac5[sensnr]);
-//  Serial.print(F("AC6 = ")); Serial.println(ac6[sensnr]);
-//  Serial.print(F("B1 = "));  Serial.println(b1[sensnr]);
-// Serial.print(F("B2 = "));  Serial.println(b2[sensnr]);
- // Serial.print(F("MB = "));  Serial.println(mb[sensnr]);
-//  Serial.print(F("MC = "));  Serial.println(mc[sensnr]);
-//  Serial.print(F("MD = "));  Serial.println(md[sensnr]);
-//  Serial.println("");
-  };
 }
-
-/**********************************************
-  Calcualte pressure readings
- **********************************************/
-float DualBMP::pressure(int32_t b5, int sensnr)
-{
-
-  //Maybe experiment with 
-  int32_t x1, x2, x3, b3, b6, p, UP;
-  uint32_t b4, b7;
-
-  UP = read_pressure(sensnr);  // Read raw pressure
-  
-  b6 = b5 - 4000;
-  x1 = (b2[sensnr] * (b6 * b6 >> 12)) >> 11;
-  x2 = ac2[sensnr] * b6 >> 11;
-  x3 = x1 + x2;
-  b3 = (((ac1[sensnr] * 4 + x3) << oss) + 2) >> 2;
-  x1 = ac3[sensnr] * b6 >> 13;
-  x2 = (b1[sensnr] * (b6 * b6 >> 12)) >> 16;
-  x3 = ((x1 + x2) + 2) >> 2;
-  b4 = (ac4[sensnr] * (uint32_t)(x3 + 32768)) >> 15;
-  b7 = ((uint32_t)UP - b3) * (50000 >> oss);
-  if (b7 < 0x80000000) {
-    p = (b7 << 1) / b4;  // or p = b7 < 0x80000000 ? (b7 * 2) / b4 : (b7 / b4) * 2;
-  } else {
-    p = (b7 / b4) << 1;
-  };
-  x1 = (p >> 8) * (p >> 8);
-  x1 = (x1 * 3038) >> 16;
-  x2 = (-7357 * p) >> 16;
-  return (p + ((x1 + x2 + 3791) >> 4))/ 100.0f;//will disabling /100 to accuracy since unit of measurement doesnt matter for our purpose?
-                                               // ^ this increases sensor volatility? /
-}
-
 /**********************************************
   Read uncompensated temperature
  **********************************************/
@@ -171,5 +97,36 @@ int32_t DualBMP::read_pressure(int sensnr)
   delay(osd);
 
   value = Sens[sensnr].Get24bitFromRegister(0xf6);
+  
   return (value); // Return value
+}
+
+float DualBMP::pressure(int32_t b5, int sensnr)
+{
+
+  int32_t x1, x2, x3, b3, b6, p, UP;
+  uint32_t b4, b7;
+
+  UP = read_pressure(sensnr);  // Read raw pressure
+  
+  b6 = b5 - 4000;
+  x1 = (b2[sensnr] * (b6 * b6 >> 12)) >> 11;
+  x2 = ac2[sensnr] * b6 >> 11;
+  x3 = x1 + x2;
+  b3 = (((ac1[sensnr] * 4 + x3) << oss) + 2) >> 2;
+  x1 = ac3[sensnr] * b6 >> 13;
+  x2 = (b1[sensnr] * (b6 * b6 >> 12)) >> 16;
+  x3 = ((x1 + x2) + 2) >> 2;
+  b4 = (ac4[sensnr] * (uint32_t)(x3 + 32768)) >> 15;
+  b7 = ((uint32_t)UP - b3) * (50000 >> oss);
+  if (b7 < 0x80000000) {
+    p = (b7 << 1) / b4;  // or p = b7 < 0x80000000 ? (b7 * 2) / b4 : (b7 / b4) * 2;
+  } else {
+    p = (b7 / b4) << 1;
+  };
+  x1 = (p >> 8) * (p >> 8);
+  x1 = (x1 * 3038) >> 16;
+  x2 = (-7357 * p) >> 16;
+  return (p + ((x1 + x2 + 3791) >> 4));
+  //removed /100.0f as the conversion is not needed for purpose and it greatly hindered accuracy
 }

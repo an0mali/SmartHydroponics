@@ -14,8 +14,8 @@ const int readLevelSamples = 16;
 
 float actualLevel = 1.0;
 
-const int emptyWait = 60;//60;// time in seconds to wait before calulating empty fluid levels
-const int fullWait[2] = {0, 60}; // {mins, seconds}
+const int emptyWait = 30;//60;// time in seconds to wait before calulating empty fluid levels
+const int fullWait[2] = {0, 30}; // {mins, seconds}
 // These pressures should be mostly dependent on the container and should only need to be calibrated once, then reloaded.
 float emptyPressure = 0;// 1.3;
 float fullPressure = 0;//4.2;
@@ -23,7 +23,6 @@ float fullPressure = 0;//4.2;
 //We're going to try to adjust pressure measurements by temp readouts in proportion to the calibraton temp,
 // since testing seems to show if directly proportional this could be affecting accuracy
 float curTemp;
-float calibTemp;//these need to start equal until calibrated for proper ops
 
 float currentPressure[readSamples];//last [int readSamples] current pressure readings, * by 100 so as to not have to use float
 int pressureIndex = 0;
@@ -55,8 +54,7 @@ void BMPFluidCalc::senseAndReport(DualBMP *dbmp, bool verbPressure = false) {
   //Updates sensors and reports pressure to system fluid level calculator
 
   dbmp -> updateSensors();
-  curTemp = (dbmp -> T[0]);
-  reportData(dbmp -> P);
+  reportData(dbmp -> P, dbmp -> T);
 
   if (verbPressure) {
     String mes = String(currentPressureMean) + ", ";
@@ -89,9 +87,10 @@ void BMPFluidCalc::calibrateFluidMeter(DualBMP *dbmp, PlantData *plantdata) {
   pdata = plantdata;
 
   calibrateMinLvl(dbmp);
+  
   delay(50);
   calibrateMaxLvl(dbmp);
-  calibTemp = curTemp;
+  
   
 }
 
@@ -151,7 +150,7 @@ void BMPFluidCalc::calibrateMaxLvl(DualBMP *dbmp) {
 
 void BMPFluidCalc::calc_Avgs() {
   float total = 0.0;
-  float divisor = 0;
+  int divisor = 0;
   for (int i = 0; i < readSamples; i++) {
     if (currentPressure[i] != 0) {
       total += currentPressure[i];
@@ -161,12 +160,6 @@ void BMPFluidCalc::calc_Avgs() {
 
   if (divisor > 0 and total != 0.0) {
     float newPressureMean = total / divisor;
-    float ePress = emptyPressure;
-    if (curTemp != 0) {
-      ePress *= (curTemp / calibTemp);
-    };
-    
-    newPressureMean -= emptyPressure;//Compensate for empty pressure adjusted for current temperature
     currentPressureMean = newPressureMean;
   };
 }
@@ -174,7 +167,7 @@ void BMPFluidCalc::calc_Avgs() {
 void BMPFluidCalc::calcFluidLevelAvg() {
   //Serial.println("Calculating avg fluid level");
   float total = 0.0;
-  float divisor = 0;
+  int divisor = 0;
   for (int i = 0; i < readLevelSamples; i++) {
     if (currentFluidLevel[i] != 0) {
       total += currentFluidLevel[i];
@@ -212,16 +205,18 @@ void BMPFluidCalc::calcFluidLevel() {
   printAvgFluidLvl();
 };
 
-void BMPFluidCalc::reportData(float pressureAmt[2]) {
-  float pressureDiff = pressureAmt[0] - pressureAmt[1];//Air pressure - Airstone line pressure
+void BMPFluidCalc::reportData(float pressureAmt[2], float tempRead[2]) {
+  float pres0 = pressureAmt[0];
+  float pres1 = pressureAmt[1];
+
+  //Adjust each pressure reading for relative temperature changes that may have occured since calibration
+
+  
+  float pressureDiff = pres0 - pres1;//Air pressure - Airstone line pressure
   //0 == internal sensor, 1== external sensor
-
-
-  currentPressure[pressureIndex] = pressureDiff;
-
-  if (curTemp != 0) {
-  pressureDiff *= (curTemp / calibTemp);
-  };
+  curTemp = tempRead[1];
+  
+  currentPressure[pressureIndex] = pressureDiff - emptyPressure;
   
   calc_Avgs();
 
