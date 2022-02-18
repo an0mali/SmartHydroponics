@@ -32,7 +32,7 @@ float prevConsumeRate = 0.0;
 float consumeLevel = 1.0;//Stores hourly avg level data for rate consumption calcuation
 float prevConsumeLevel = 1.0;
 
-float FluidLevel;//storage for previously passed values, because display and timer intervals may be asyncronous
+float FluidLevel = 1.0;//storage for previously passed values, because display and timer intervals may be asyncronous
 float Temp;
 
 PlantData::PlantData() {
@@ -106,16 +106,17 @@ void PlantData::doHourFour() {
   //Calculate consum rates based on four hour averages here, call via doHourly()
   float fourHourAvg = hourFAvgTotal / hourFAvgDiv;
 
-  if (prevFourHourAvg != 0) {
+  if (prevFourHourAvg != 0.0) {
     //as percentage of container max volume - container min volume (set during calibration)
     //calc
     float consumeFRate= prevFourHourAvg - fourHourAvg;//loss over 4 hours
-    prevConsumeRate = consumeRate;
-    consumeRate = consumeFRate * 6;//convert to loss over one day, should help amplify changes in uptake that could help ID problems
+    if (consumeFRate != 0) {
+      prevConsumeRate = consumeRate;
+      consumeRate = consumeFRate * 6;//convert to loss over one day, should help amplify changes in uptake that could help ID problems
     //is also useful for more things
 
-    daysUntilEmpty = 100 / consumeRate;
-   
+      daysUntilEmpty = FluidLevel / consumeRate;
+    };
     //
   };
   prevFourHourAvg = fourHourAvg;
@@ -125,7 +126,7 @@ void PlantData::doHourFour() {
 }
 
 void PlantData::updateOLED(float avgcurrentLevel, float sensLevel, float temp) {
-  FluidLevel = avgcurrentLevel;
+  FluidLevel = (FluidLevel + avgcurrentLevel) / 2.0;//Should round out some "noise" spikes
   Temp = temp;
 
   

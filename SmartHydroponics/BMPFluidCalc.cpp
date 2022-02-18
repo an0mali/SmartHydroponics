@@ -23,6 +23,7 @@ float fullPressure = 0;//4.2;
 //We're going to try to adjust pressure measurements by temp readouts in proportion to the calibraton temp,
 // since testing seems to show if directly proportional this could be affecting accuracy
 float curTemp;
+float calibExtPress;
 
 float currentPressure[readSamples];//last [int readSamples] current pressure readings, * by 100 so as to not have to use float
 int pressureIndex = 0;
@@ -45,7 +46,8 @@ const PROGMEM char newFluidLevelMes[] = "Calculated Fluid Level: ";
 const int buttonPin = 5;
 bool newData = false;
 float prevPressure = 999.9;
-
+float atmosAdjust = 1.0;
+bool isCalib;
 
 PlantData *pdata;
 
@@ -91,7 +93,7 @@ void BMPFluidCalc::calibrateFluidMeter(DualBMP *dbmp, PlantData *plantdata) {
   calibrateMinLvl(dbmp);
   delay(50);
   calibrateMaxLvl(dbmp);
-
+  isCalib = true;
   // add function to detect when liquid has settled and apply a modifier to bring that point to 100% to compensate for final calibration
   // inaccuracies
 }
@@ -114,8 +116,9 @@ void BMPFluidCalc::calibrateMinLvl(DualBMP *dbmp) {
   pdata ->sendPData(mes);
   for (int i = 0; i < readSamples; i++) {
     senseAndReport(dbmp, true);
+    calibExtPress += (dbmp -> P[1]);
   };
-
+  calibExtPress /= readSamples;
   emptyPressure = currentPressureMean;//
   pdata -> sendPData("!");
   mes = "\nMin P is: " + String(emptyPressure) + "\n";
@@ -193,7 +196,7 @@ void BMPFluidCalc::calcFluidLevel() {
   if (currentPressureMean != 0 and fullPressure != 0) {
 
 
-    float newFluidLevel = (currentPressureMean / fullPressure); // * 100.0;
+    float newFluidLevel = (currentPressureMean / (fullPressure * atmosAdjust)); // * 100.0;
 
     
 
@@ -204,54 +207,28 @@ void BMPFluidCalc::calcFluidLevel() {
     if (levelIndex >= readLevelSamples) {
       levelIndex = 0;
     };
-    calcFluidLevelAvg();
-    printAvgFluidLvl();
+    if (isCalib) {
+      calcFluidLevelAvg();
+      printAvgFluidLvl();
+    };
   };
   
 };
 
 void BMPFluidCalc::reportData(float pressureAmt[2], float tempRead[2]) {
-  //Adjust each pressure reading for relative temperature changes that may have occured since calibration
 
+  if (isCalib == true) {
+  atmosAdjust =  pressureAmt[0] / calibExtPress;//Factor to compensate for airpressure differences since calibration
+  };
   
   float pressureDiff = pressureAmt[0]- pressureAmt[1];//Air pressure - Airstone line pressure
   //0 == internal sensor, 1== external sensor
+  
   curTemp = tempRead[0];
-
-  //Long-term "drift" issue, might be caused by temperature difference from time of calibration to measurement time,
-  // so lets try to compensate for it?
-  //if (calibTemp > 0) {
-  //pressureDiff *= (curTemp/calibTemp);//reduce pressure difference in proportion to atmospheric pressure difference?
-  //};
-  /*calibTemp/curTemp seemed to have variation of +/- 3% but steady over 8 hours
-  
-  If temp increases, pressure decreases. As such, pressureDiff and emptyPressure needs to be decreased in proportion to 
-   maintime longterm accuracy? But this seems to be opposite of testing results? Also, reading "external" sensor temperature and
-   making any adjustment in proportion of this seems to obviously decrease accuracy. 
-  
-  Temperature increase casuses fluid to expand, increasing backpressure? Maybe we need to adjust by water thermal expansion rate per
-  degree C?
-
-  "In a closed or "water-solid" water heating system, thermal expansion pressure equals approximately 2.5 % of volume for every 100°F rise."
-  ^this should mean such an adjustment should be neglibile/not needed. If it is needed, it should be applied to emptyPressure as well
-  (100C ~4%, so 1C ~.04%)
-  
-  so every 1C should affect reading accuracy by roughly .08% per degree C if baseline level is 250mL and max level is 500mL
-  This should be completely negligible
-  
-  Second sensor *should* already eliminate general atmospheric differences due to high/low pressure
-   (storm) systems.
-
-  increase accuracy by increasing "empty" waterline? (more back pressure == more consistent reading of baseline pressure?)
-
-
-  //maybe take the average of min and max of averages of samples
-  */
-  
-  pressureDiff -= emptyPressure;
-  
+  //
+  pressureDiff *= atmosAdjust;
+  pressureDiff -= (emptyPressure * atmosAdjust);
   currentPressure[pressureIndex] = pressureDiff;
-  
   //Maybe adjust this by calibration temperature reading of sensor 0?
   calc_Avgs();
 
