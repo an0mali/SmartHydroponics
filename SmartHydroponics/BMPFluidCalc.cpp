@@ -217,9 +217,9 @@ void BMPFluidCalc::calcFluidLevel() {
 
 void BMPFluidCalc::reportData(float pressureAmt[2], float tempRead[2]) {
 
-  //if (isCalib == true) {
-  //atmosAdjust =  calibExtPress/pressureAmt[0];
- // };
+  if (isCalib == true) {
+  atmosAdjust =  calibExtPress/pressureAmt[0];
+  };
   
   float pressureDiff = pressureAmt[0]- pressureAmt[1];//Air pressure - Airstone line pressure
   //0 == internal sensor, 1== external sensor
