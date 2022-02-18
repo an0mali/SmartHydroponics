@@ -14,8 +14,8 @@ const int readLevelSamples = 16;
 
 float actualLevel = 1.0;
 
-const int emptyWait = 15;//60;// time in seconds to wait before calulating empty fluid levels
-const int fullWait[2] = {0, 15}; // {mins, seconds}
+const int emptyWait = 30;//60;// time in seconds to wait before calulating empty fluid levels
+const int fullWait[2] = {0, 30}; // {mins, seconds}
 // These pressures should be mostly dependent on the container and should only need to be calibrated once, then reloaded.
 float emptyPressure = 0;// 1.3;
 float fullPressure = 0;//4.2;
@@ -217,9 +217,9 @@ void BMPFluidCalc::calcFluidLevel() {
 
 void BMPFluidCalc::reportData(float pressureAmt[2], float tempRead[2]) {
 
-  if (isCalib == true) {
-  atmosAdjust =  pressureAmt[0] / calibExtPress;//Factor to compensate for airpressure differences since calibration
-  };
+  //if (isCalib == true) {
+  //atmosAdjust =  calibExtPress/pressureAmt[0];
+ // };
   
   float pressureDiff = pressureAmt[0]- pressureAmt[1];//Air pressure - Airstone line pressure
   //0 == internal sensor, 1== external sensor

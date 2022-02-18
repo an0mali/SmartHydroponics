@@ -95,9 +95,9 @@ void PlantData::doDaily() {
 void PlantData::doHourly(){
   recordPlantData();
   hourFCount++;
-  //if (hourFCount == 4) {
+  if (hourFCount == 4) {
     doHourFour();//doing this hourly for testing
-  //};
+  };
   recordPlantData();
 }
 
@@ -126,7 +126,8 @@ void PlantData::doHourFour() {
 }
 
 void PlantData::updateOLED(float avgcurrentLevel, float sensLevel, float temp) {
-  FluidLevel = (FluidLevel + avgcurrentLevel) / 2.0;//Should round out some "noise" spikes
+ // FluidLevel = (FluidLevel + avgcurrentLevel) / 2.0;//Should round out some "noise" spikes
+  FluidLevel = avgcurrentLevel;
   Temp = temp;
 
   
