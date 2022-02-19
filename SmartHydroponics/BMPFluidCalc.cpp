@@ -210,12 +210,12 @@ void BMPFluidCalc::printAvgFluidLvl() {
     tInd = readSamples - 1;
   };
   
-  Serial.print(" Temp:" + String(curTemp) + "C\t");
+  Serial.print(" Temp:" + String(curTemp) + "C ");
   Serial.print("Trend:" + String(currentPressure[tInd] / fullPressure));
   //Serial.print("p0=" + String(p0) + "p1=" + String(p1) + " Cp1="  + String(calibExtPress) + " p0p1:" + String(p0-p1));
   Serial.print(" p0p1:" + String(p0-p1));
   Serial.println("\tp1c_dif:" + String(p1 - calibExtPress) );
-  
+  delay(50);
 }
 
 void BMPFluidCalc::calcFluidLevel() {
@@ -252,12 +252,12 @@ void BMPFluidCalc::reportData() {
   };
   
   
-  float pressureDiff = p0 - p1;//Airstone line pressure - airpressure
-  // pressureDiff *= atmosAdjust;//to effectively divisor when averaging values later
-    pressureDiff -= calibDiff;
- // pressureDiff *= atmosAdjust;
+  float pressureDiff = p0;// - p1;//Airstone line pressure - airpressure
+   //pressureDiff *= atmosAdjust;//to effectively divisor when averaging values later
+   //pressureDiff -= calibDiff;
+  // pressureDiff *= atmosAdjust;
   //bring pressure reading into calibration adjustment scale
- // pressureDiff -= (emptyPressure * atmosAdjust);// * atmosAdjust);//+ calibDiff);//adjust empty pressure reading change
+  pressureDiff -= (emptyPressure  + calibDiff);// * atmosAdjust);//+ calibDiff);//adjust empty pressure reading change
   
   //the result should be pressure difference within calibrated scale.
   
