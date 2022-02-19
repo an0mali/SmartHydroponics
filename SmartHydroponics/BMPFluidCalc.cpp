@@ -14,8 +14,8 @@ const int readLevelSamples = 16;
 
 float actualLevel = 1.0;
 
-const int emptyWait = 3;//60;// time in seconds to wait before calulating empty fluid levels
-const int fullWait = 3; // {mins, seconds}
+const int emptyWait = 10;//60;// time in seconds to wait before calulating empty fluid levels
+const int fullWait = 10; // {mins, seconds}
 // These pressures should be mostly dependent on the container and should only need to be calibrated once, then reloaded.
 
 float emptyPressure;
@@ -258,7 +258,7 @@ void BMPFluidCalc::reportData() {
   // pressureDiff *= atmosAdjust;
   //bring pressure reading into calibration adjustment scale
   pressureDiff -= (emptyPressure  + calibDiff);// * atmosAdjust);//+ calibDiff);//adjust empty pressure reading change
-  
+  pressureDiff *= atmosAdjust;
   //the result should be pressure difference within calibrated scale.
   
 
