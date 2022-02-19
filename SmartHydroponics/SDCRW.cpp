@@ -47,7 +47,7 @@ void SDCRW::initDataFile() {
 }
 
 bool SDCRW::writeData(String dat, String toFile=DATAFILE) {
-  ProgMemStr().printCharMes(StoreMes, true);
+  //ProgMemStr().printCharMes(StoreMes, true);
   //Serial.println(dat);
   dat = "***\n" + dat;
   plantData = SD.open(toFile, FILE_WRITE);
@@ -55,10 +55,10 @@ bool SDCRW::writeData(String dat, String toFile=DATAFILE) {
     //Store data
     plantData.println(dat);
   } else {
-    ProgMemStr().printCharMes(FileStoreFailMes);
+    //ProgMemStr().printCharMes(FileStoreFailMes);
     return false;
   };
   plantData.close();
-  delay(250);
+  //delay(250);
   return true;
 }
