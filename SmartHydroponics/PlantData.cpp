@@ -9,10 +9,10 @@ SDCRW sdcrw;// SDcard data r/w class
 
 
 
-long day = 86400000; // 86400000 milliseconds in a day
-long hour = 3600000; // 3600000 milliseconds in an hour
-long minute = 60000; // 60000 milliseconds in a minute
-long second =  1000; // 1000 milliseconds in a second
+const long day = 86400000; // 86400000 milliseconds in a day
+const long hour = 3600000; // 3600000 milliseconds in an hour
+const long minute = 60000; // 60000 milliseconds in a minute
+const long second =  1000; // 1000 milliseconds in a second
 
 int elapsedHours = 0;
 int elapsedDays = 0;
@@ -184,9 +184,9 @@ String PlantData::getStrDat() {
 void PlantData::recordPlantData(){ //, float intervalavg) {
 
   String dat = getRuntime();
-  dat.replace("\n", "\t");
+  //dat.replace("\n", "\t");
   sdcrw.writeData(dat);
   dat = getStrDat();
-  dat.replace("\n", "\t");
+  //dat.replace("\n", "\t");
   sdcrw.writeData(dat);
 }

@@ -40,13 +40,9 @@ void DualBMP::beginSense() {
 
 void DualBMP::updateSensors() {
   int32_t b5[2];
-  //Serial.println("Update sensors");
   for (int eachsens = 0; eachsens < 2 ; eachsens++) {
     b5[eachsens] = temperature(eachsens);            // Read and calculate temperature (T)
     P[eachsens] = pressure(b5[eachsens], eachsens);
-
-    // Read and calculate pressure (P),calculating sensor 1 based on sensor 0 data as attempt to increase accuracy
-   // printSensorInfo(eachsens);
   };
 }
 
@@ -128,6 +124,6 @@ float DualBMP::pressure(int32_t b5, int sensnr)
   x1 = (p >> 8) * (p >> 8);
   x1 = (x1 * 3038) >> 16;
   x2 = (-7357 * p) >> 16;
-  return float(p + ((x1 + x2 + 3791) >> 4));// /100.0f;// as the conversion is not needed for purpose and it greatly hindered accuracy
+  return (p + ((x1 + x2 + 3791) >> 4));//
 };
   //removed /100.0f as the conversion is not needed for purpose and it greatly hindered accuracy

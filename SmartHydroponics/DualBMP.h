@@ -22,6 +22,12 @@ class DualBMP {
     
     const uint8_t oss = 3;                      // Set oversampling setting
     const uint8_t osd = 27;                     // with corresponding oversampling delay
+    /*
+     * OSD is supposed to be 26 when OSS is 3, according to datasheet. However- 27 seems to provide much more consistent/accurate
+     * results
+     * 
+     */
+    
     int16_t  ac1[2], ac2[2], ac3[2], b1[2], b2[2], mb[2], mc[2], md[2]; // Store sensor PROM values from BMP180
     uint16_t ac4[2], ac5[2], ac6[2];                     // Store sensor PROM values from BMP180 
     

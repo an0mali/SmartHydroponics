@@ -14,13 +14,12 @@ const int readLevelSamples = 16;
 
 float actualLevel = 1.0;
 
-const int emptyWait = 15;//60;// time in seconds to wait before calulating empty fluid levels
-const int fullWait[2] = {0, 15}; // {mins, seconds}
+const int emptyWait = 30;//60;// time in seconds to wait before calulating empty fluid levels
+const int fullWait = 30; // {mins, seconds}
 // These pressures should be mostly dependent on the container and should only need to be calibrated once, then reloaded.
 
 float emptyPressure;
 float fullPressure;//4.2;
-float fullPressureMod;
 
 //We're going to try to adjust pressure measurements by temp readouts in proportion to the calibraton temp,
 // since testing seems to show if directly proportional this could be affecting accuracy
@@ -38,13 +37,13 @@ float sensFluidLevel = 1.0;
 
 
 const PROGMEM char calibrateMes[] = "Enable pump, fill to LOW level. Press button to continue.";
-const PROGMEM char diffMes[] = "Calculating min pressure";
+const PROGMEM char diffMes[] = "Calc. min pressure";
 const PROGMEM char fillMes[] = "Fill to MAX then press button to continue.";
 const PROGMEM char maxPressMes[] = "Full pressure set to: ";
 const PROGMEM char calCompMes[] = "Calibration Completed.";
 const PROGMEM char cPressMeanMes[] = "currentPressureMean:";
 const PROGMEM char cFluidLevelMes[] = " AFL: ";
-const PROGMEM char newFluidLevelMes[] = "Calculated Fluid Level: ";
+const PROGMEM char newFluidLevelMes[] = "CFL: ";
 
 const int buttonPin = 5;
 bool newData = false;
@@ -102,10 +101,10 @@ void BMPFluidCalc::calibrateFluidMeter(DualBMP *dbmp, PlantData *plantdata) {
   pdata = plantdata;
 
   calibrateMinLvl(dbmp);
+  
   delay(50);
   calibrateMaxLvl(dbmp);
-  calibTemp = curTemp;
-  isCalib = true;
+  isCalib = true;// <---- tested, above placement is experimental
   // add function to detect when liquid has settled and apply a modifier to bring that point to 100% to compensate for final calibration
   // inaccuracies
 }
@@ -143,7 +142,7 @@ void BMPFluidCalc::calibrateMaxLvl(DualBMP *dbmp) {
   pdata -> sendPData(mes);
   inputPause();
   pdata -> sendPData("!");
-  countdownTime(fullWait[0], fullWait[1]);//wait min, sec for liquid to settle. Good @ 30, set to 10 for debug
+  countdownTime(0, fullWait);//wait min, sec for liquid to settle. Good @ 30, set to 10 for debug
   for (int i = 0; i < readSamples; i++) {
     currentPressure[i] = 0.0;//clear out old pressure readings, doesnt matter functionally, just affects display during calibration
   };
@@ -163,6 +162,7 @@ void BMPFluidCalc::calibrateMaxLvl(DualBMP *dbmp) {
   for (int i = 0; i < readLevelSamples; i++) {
     currentFluidLevel[i] = 1.0;
   };
+  delay(500);
 };
 
 
@@ -229,28 +229,22 @@ void BMPFluidCalc::calcFluidLevel() {
 }
 
 void BMPFluidCalc::reportData() {
-
+  /*DO NOT TOUCH SHIT IS CASH
+   * We need to adjust our pressure difference in proportion to the difference of atmospheric pressure change
+   * weighted to our calibration
+   */
   float calibDiff;
   if (isCalib) {
-    calibDiff = p1 - calibExtPress;//need to increase with new press increase
+    calibDiff = p1 - calibExtPress;
     atmosAdjust = 1.0 + (calibDiff / (fullPressure - emptyPressure));
-    /*
-     * p1 - calibpressure -> units of difference. Empty pressure + units of difference -> new empty pressure / empty pressure 
-     */
   };
   
  
   float pressureDiff = p0;// - p1;//Airstone line pressure - airpressure
-  //if (isCalib) {
-  //  pressureDiff = (p0 + calibDiff) - calibExtPress;
-  //};
-  //0 == Airline sensor, 1== external sensor
-  //pressureDiff -= ePress; <- Seem to be getting fine result with enabled, but shouldnt be needed??
-  float ePress = emptyPressure;
-  pressureDiff *= atmosAdjust;
-  pressureDiff -= ePress;
-  currentPressure[pressureIndex] = pressureDiff;// - calibDiff;//atmosAdjust;// * tempAdjust;
-  //Maybe adjust this by calibration temperature reading of sensor 0?
+
+  pressureDiff *= atmosAdjust;//bring pressure reading into calibration adjustment scale
+  pressureDiff -= emptyPressure;
+  currentPressure[pressureIndex] = pressureDiff;
   calc_Avgs();
 
   pressureIndex++;
