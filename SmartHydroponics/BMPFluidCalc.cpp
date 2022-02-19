@@ -14,8 +14,8 @@ const int readLevelSamples = 16;
 
 float actualLevel = 1.0;
 
-const int emptyWait = 30;//60;// time in seconds to wait before calulating empty fluid levels
-const int fullWait = 30; // {mins, seconds}
+const int emptyWait = 3;//60;// time in seconds to wait before calulating empty fluid levels
+const int fullWait = 3; // {mins, seconds}
 // These pressures should be mostly dependent on the container and should only need to be calibrated once, then reloaded.
 
 float emptyPressure;
@@ -146,11 +146,14 @@ void BMPFluidCalc::calibrateMaxLvl(DualBMP *dbmp) {
   for (int i = 0; i < readSamples; i++) {
     currentPressure[i] = 0.0;//clear out old pressure readings, doesnt matter functionally, just affects display during calibration
   };
-
+  float new_calibExtPress;
   for (int i = 0; i < readSamples; i++) {
     senseAndReport(dbmp, true);
+    new_calibExtPress += (dbmp -> P[1]);
   };
 
+  new_calibExtPress /= readSamples;
+  calibExtPress = (calibExtPress + new_calibExtPress) / 2.0;
   fullPressure = currentPressureMean;
 
   // ProgMemStr().printCharMes(maxPressMes, false);
@@ -200,11 +203,19 @@ void BMPFluidCalc::calcFluidLevelAvg() {
 
 void BMPFluidCalc::printAvgFluidLvl() {
   ProgMemStr().printCharMes(cFluidLevelMes, false);
-  Serial.print(String(currentFluidLevelMean * 100) + "%\tT:");
-  Serial.print(String(curTemp) + "C\t");
-  Serial.print("p0=" + String(p0) + "\tp1=" + String(p1) + "\tCp1="  + String(calibExtPress) + " p0p1:" + String(p0-p1));
-  Serial.print("\tp1c_dif:" + String(p1 - calibExtPress) + " %D:" + String(p1 / calibExtPress));
-  Serial.println("QFL:" + String(currentPressure[pressureIndex - 1] / fullPressure));
+  Serial.print(String(currentFluidLevelMean * 100));
+  int tInd = pressureIndex;
+  tInd -= 1;
+  if (tInd < 0) {
+    tInd = readSamples - 1;
+  };
+  
+  Serial.print(" Temp:" + String(curTemp) + "C\t");
+  Serial.print("Trend:" + String(currentPressure[tInd] / fullPressure));
+  //Serial.print("p0=" + String(p0) + "p1=" + String(p1) + " Cp1="  + String(calibExtPress) + " p0p1:" + String(p0-p1));
+  Serial.print(" p0p1:" + String(p0-p1));
+  Serial.println("\tp1c_dif:" + String(p1 - calibExtPress) );
+  
 }
 
 void BMPFluidCalc::calcFluidLevel() {
@@ -233,17 +244,24 @@ void BMPFluidCalc::reportData() {
    * We need to adjust our pressure difference in proportion to the difference of atmospheric pressure change
    * weighted to our calibration
    */
-  float calibDiff;
+  float calibDiff = 1.0;
   if (isCalib) {
     calibDiff = p1 - calibExtPress;
-    atmosAdjust = 1.0 + (calibDiff / (fullPressure - emptyPressure));
+   // atmosAdjust = 1.0 + (calibDiff / calibExtPress);
+    atmosAdjust =  1.0 + (calibDiff / (fullPressure - emptyPressure));
   };
   
- 
-  float pressureDiff = p0;// - p1;//Airstone line pressure - airpressure
+  
+  float pressureDiff = p0 - p1;//Airstone line pressure - airpressure
+  // pressureDiff *= atmosAdjust;//to effectively divisor when averaging values later
+    pressureDiff -= calibDiff;
+ // pressureDiff *= atmosAdjust;
+  //bring pressure reading into calibration adjustment scale
+ // pressureDiff -= (emptyPressure * atmosAdjust);// * atmosAdjust);//+ calibDiff);//adjust empty pressure reading change
+  
+  //the result should be pressure difference within calibrated scale.
+  
 
-  pressureDiff *= atmosAdjust;//bring pressure reading into calibration adjustment scale
-  pressureDiff -= emptyPressure;
   currentPressure[pressureIndex] = pressureDiff;
   calc_Avgs();
 
