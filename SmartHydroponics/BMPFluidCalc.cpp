@@ -43,15 +43,17 @@ const PROGMEM char fillMes[] = "Fill to MAX then press button to continue.";
 const PROGMEM char maxPressMes[] = "Full pressure set to: ";
 const PROGMEM char calCompMes[] = "Calibration Completed.";
 const PROGMEM char cPressMeanMes[] = "currentPressureMean:";
-const PROGMEM char cFluidLevelMes[] = " Average Fluid Level: ";
+const PROGMEM char cFluidLevelMes[] = " AFL: ";
 const PROGMEM char newFluidLevelMes[] = "Calculated Fluid Level: ";
 
 const int buttonPin = 5;
 bool newData = false;
-float prevPressure = 999.9;
+
 float atmosAdjust = 1.0;
-float tempAdjust = 1.0;
 bool isCalib;
+
+float p0;
+float p1;
 
 PlantData *pdata;
 
@@ -62,7 +64,12 @@ void BMPFluidCalc::senseAndReport(DualBMP *dbmp, bool verbPressure = false) {
   //Updates sensors and reports pressure to system fluid level calculator
 
   dbmp -> updateSensors();
-  reportData(dbmp -> P, dbmp -> T);
+  
+  p0 = dbmp -> P[0];//pressure reading from airstone line
+  p1 = dbmp -> P[1];//pressure reading from atmos
+  curTemp = dbmp -> T[1];
+  
+  reportData();
 
   if (verbPressure) {
     String mes = String(currentPressureMean) + ", ";
@@ -193,16 +200,19 @@ void BMPFluidCalc::calcFluidLevelAvg() {
 
 void BMPFluidCalc::printAvgFluidLvl() {
   ProgMemStr().printCharMes(cFluidLevelMes, false);
-  Serial.print(String(currentFluidLevelMean * 100) + "%\tTemp:");
-  Serial.println(String(curTemp) + "C, CalibTemp: "  + String(calibTemp));
+  Serial.print(String(currentFluidLevelMean * 100) + "%\tT:");
+  Serial.print(String(curTemp) + "C\t");
+  Serial.print("p0=" + String(p0) + "\tp1=" + String(p1) + "\tCp1="  + String(calibExtPress) + " p0p1:" + String(p0-p1));
+  Serial.print("\tp1c_dif:" + String(p1 - calibExtPress) + " %D:" + String(p1 / calibExtPress));
+  Serial.println("QFL:" + String(currentPressure[pressureIndex - 1] / fullPressure));
 }
 
 void BMPFluidCalc::calcFluidLevel() {
 
   if (currentPressureMean != 0 and fullPressure != 0) {
 
-    float newFluidLevel = (currentPressureMean / fullPressure ); // * 100.0;
-   
+    float newFluidLevel = (currentPressureMean / (fullPressure) ); // * 100.0;
+    
     currentFluidLevel[levelIndex] = newFluidLevel;
 
     sensFluidLevel = newFluidLevel;
@@ -218,14 +228,28 @@ void BMPFluidCalc::calcFluidLevel() {
   
 }
 
-void BMPFluidCalc::reportData(float pressureAmt[2], float tempRead[2]) {
+void BMPFluidCalc::reportData() {
+
+  float calibDiff;
+  if (isCalib) {
+    calibDiff = p1 - calibExtPress;//need to increase with new press increase
+    atmosAdjust = 1.0 + (calibDiff / (fullPressure - emptyPressure));
+    /*
+     * p1 - calibpressure -> units of difference. Empty pressure + units of difference -> new empty pressure / empty pressure 
+     */
+  };
   
-  float pressureDiff = pressureAmt[0]- pressureAmt[1];//Airstone line pressure - airpressure
+ 
+  float pressureDiff = p0;// - p1;//Airstone line pressure - airpressure
+  //if (isCalib) {
+  //  pressureDiff = (p0 + calibDiff) - calibExtPress;
+  //};
   //0 == Airline sensor, 1== external sensor
-  
-  curTemp = tempRead[1];
-  
-  currentPressure[pressureIndex] = pressureDiff;// * tempAdjust;
+  //pressureDiff -= ePress; <- Seem to be getting fine result with enabled, but shouldnt be needed??
+  float ePress = emptyPressure;
+  pressureDiff *= atmosAdjust;
+  pressureDiff -= ePress;
+  currentPressure[pressureIndex] = pressureDiff;// - calibDiff;//atmosAdjust;// * tempAdjust;
   //Maybe adjust this by calibration temperature reading of sensor 0?
   calc_Avgs();
 

@@ -109,8 +109,8 @@ float DualBMP::pressure(int32_t b5, int sensnr)
 
   UP = read_pressure(sensnr);  // Read raw pressure
   //return float(UP);
-  //b6 = b5 - 4000;
-  b6 = 4000; //try removing 
+  b6 = b5 - 4000;
+  //b6 = 4000;
   x1 = (b2[sensnr] * (b6 * b6 >> 12)) >> 11;
   x2 = ac2[sensnr] * b6 >> 11;
   x3 = x1 + x2;
@@ -125,8 +125,6 @@ float DualBMP::pressure(int32_t b5, int sensnr)
   } else {
     p = (b7 / b4) << 1;
   };
-
-  //below here seems to be some sort of conversion, maybe return p?
   x1 = (p >> 8) * (p >> 8);
   x1 = (x1 * 3038) >> 16;
   x2 = (-7357 * p) >> 16;
