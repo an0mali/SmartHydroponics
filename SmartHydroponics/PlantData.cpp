@@ -167,12 +167,12 @@ String PlantData::getStrDat() {
   if (consumeRate == 0) {
     consume = "NotRdy";
   };
-  dat += "\nConsumption: " + consume;
+  dat += "\nCon: " + consume;
   if (consumeRate != 0 and prevConsumeRate != 0) {
     if (consumeRate > prevConsumeRate) {
-      dat += " :)";
+      dat += ":)";
     } else {
-      dat += " :(";
+      dat += ":(";
     };
     };
   
@@ -183,10 +183,6 @@ String PlantData::getStrDat() {
 
 void PlantData::recordPlantData(){ //, float intervalavg) {
 
-  String dat = getRuntime();
-  //dat.replace("\n", "\t");
-  sdcrw.writeData(dat);
-  dat = getStrDat();
-  //dat.replace("\n", "\t");
+  String dat = getRuntime() + getStrDat();
   sdcrw.writeData(dat);
 }

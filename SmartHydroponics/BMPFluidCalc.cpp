@@ -245,21 +245,24 @@ void BMPFluidCalc::reportData() {
    * weighted to our calibration
    */
   float calibDiff = 1.0;
+  float addVal;
   if (isCalib) {
     calibDiff = p1 - calibExtPress;
    // atmosAdjust = 1.0 + (calibDiff / calibExtPress);
     atmosAdjust =  1.0 + (calibDiff / (fullPressure - emptyPressure));
+    addVal = (calibDiff / (fullPressure - emptyPressure)) * 100.0;
   };
   
   
-  float pressureDiff = p0;// - p1;//Airstone line pressure - airpressure
+  float pressureDiff = p0 - p1;//Airstone line pressure - airpressure
    //pressureDiff *= atmosAdjust;//to effectively divisor when averaging values later
    //pressureDiff -= calibDiff;
   // pressureDiff *= atmosAdjust;
   //bring pressure reading into calibration adjustment scale
   
-  pressureDiff *= atmosAdjust;
-  pressureDiff -= (emptyPressure);
+  //pressureDiff *= atmosAdjust;
+  pressureDiff -= emptyPressure;// + calibDiff);
+ // pressureDiff += addVal;
   //the result should be pressure difference within calibrated scale.
   
 

@@ -20,12 +20,12 @@ class DualBMP {
     int32_t read_pressure(int sensnr);   
     float pressure(int32_t b5, int sensnr);
     
-    const uint8_t oss = 3;                      // Set oversampling setting
-    const uint8_t osd = 27;                     // with corresponding oversampling delay
+    const uint8_t oss = 2;                      // Set oversampling setting
+    const uint8_t osd = 14;                     // with corresponding oversampling delay
     /*
-     * OSD is supposed to be 26 when OSS is 3, according to datasheet. However- 27 seems to provide much more consistent/accurate
-     * results
-     * 
+     * 3 is highest resolution, but for our use case we need to compare 2 sensors as quick as possible and that 
+     * high of resolution is unuseable noise.
+     * tested: OSS 2 > 3
      */
     
     int16_t  ac1[2], ac2[2], ac3[2], b1[2], b2[2], mb[2], mc[2], md[2]; // Store sensor PROM values from BMP180
