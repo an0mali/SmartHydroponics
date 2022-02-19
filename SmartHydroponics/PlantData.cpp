@@ -61,10 +61,6 @@ String PlantData::getRuntime() {
   int minutes = ((timeNow % day) % hour) / minute ;         //and so on...
   int seconds = (((timeNow % day) % hour) % minute) / second;
 
-  if (hours > elapsedHours) {
-    elapsedHours = hours;
-    doHourly();
-  };
   if (days > elapsedDays) {
     elapsedDays = days;
     doDaily();
@@ -84,7 +80,7 @@ void PlantData::doFifteen() {
     fifteenMinInt = 0;
     doHourly();
   };
-  
+  recordPlantData();
   
 }
 
@@ -93,12 +89,10 @@ void PlantData::doDaily() {
 }
 
 void PlantData::doHourly(){
-  recordPlantData();
   hourFCount++;
   if (hourFCount == 4) {
     doHourFour();//doing this hourly for testing
   };
-  recordPlantData();
 }
 
   
@@ -178,7 +172,7 @@ String PlantData::getStrDat() {
     if (consumeRate > prevConsumeRate) {
       dat += " :)";
     } else {
-      dat += " :'(";
+      dat += " :(";
     };
     };
   
@@ -190,7 +184,9 @@ String PlantData::getStrDat() {
 void PlantData::recordPlantData(){ //, float intervalavg) {
 
   String dat = getRuntime();
-  dat += getStrDat();
+  dat.replace("\n", "\t");
+  sdcrw.writeData(dat);
+  dat = getStrDat();
   dat.replace("\n", "\t");
   sdcrw.writeData(dat);
 }

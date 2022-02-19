@@ -12,7 +12,7 @@ void ProgMemStr::printCharMes(const char ptr[],bool endLine=true, const int maxB
             if (endLine) {
               Serial.println(printMes);
             } else {
-              Serial.println(printMes);
+              Serial.print(printMes);
             };
 }
 char ProgMemStr::getChar(const char ptr[], const int maxBuffer=64) {
