@@ -14,8 +14,8 @@ const int readLevelSamples = 16;
 
 float actualLevel = 1.0;
 
-const int emptyWait = 15;//60;// time in seconds to wait before calulating empty fluid levels
-const int fullWait = 15; // {mins, seconds}
+const int emptyWait = 10;//60;// time in seconds to wait before calulating empty fluid levels
+const int fullWait = 10; // {mins, seconds}
 // These pressures should be mostly dependent on the container and should only need to be calibrated once, then reloaded.
 
 float emptyPressure;
@@ -104,6 +104,7 @@ void BMPFluidCalc::calibrateFluidMeter(DualBMP *dbmp, PlantData *plantdata) {
   
   delay(50);
   calibrateMaxLvl(dbmp);
+  calibTemp = curTemp;
   isCalib = true;// <---- tested, above placement is experimental
   // add function to detect when liquid has settled and apply a modifier to bring that point to 100% to compensate for final calibration
   // inaccuracies
@@ -255,17 +256,14 @@ void BMPFluidCalc::reportData() {
   
   
   float pressureDiff = p0 - p1;//Airstone line pressure - airpressure
-   //pressureDiff *= atmosAdjust;//to effectively divisor when averaging values later
-   //pressureDiff -= calibDiff;
-  // pressureDiff *= atmosAdjust;
-  //bring pressure reading into calibration adjustment scale
-  
-  //pressureDiff *= atmosAdjust;
-  pressureDiff -= emptyPressure;// + calibDiff);
- // pressureDiff += addVal;
-  //the result should be pressure difference within calibrated scale.
-  
 
+  pressureDiff -= (emptyPressure);// + calibDiff);
+
+ // if (isCalib) {
+ //   pressureDiff *= 1.0 + (((curTemp - calibTemp) / calibTemp)) / 2.0;//adjust for current temperature. not sure why this is needed
+  //seems to be opposite of thermal expansion?
+ // };
+  
   currentPressure[pressureIndex] = pressureDiff;
   calc_Avgs();
 

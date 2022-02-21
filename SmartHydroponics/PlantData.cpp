@@ -90,8 +90,8 @@ void PlantData::doDaily() {
 
 void PlantData::doHourly(){
   hourFCount++;
-  if (hourFCount == 4) {
-    doHourFour();//doing this hourly for testing
+  if (hourFCount == 8) {
+    doHourFour();//
   };
 }
 
@@ -103,10 +103,10 @@ void PlantData::doHourFour() {
   if (prevFourHourAvg != 0.0) {
     //as percentage of container max volume - container min volume (set during calibration)
     //calc
-    float consumeFRate= prevFourHourAvg - fourHourAvg;//loss over 4 hours
+    float consumeFRate= prevFourHourAvg - fourHourAvg;//loss over 8 hours
     if (consumeFRate != 0) {
       prevConsumeRate = consumeRate;
-      consumeRate = consumeFRate * 6;//convert to loss over one day, should help amplify changes in uptake that could help ID problems
+      consumeRate = consumeFRate * -3;//convert to loss over one day, should help amplify changes in uptake that could help ID problems
     //is also useful for more things
 
       daysUntilEmpty = FluidLevel / consumeRate;
@@ -184,5 +184,6 @@ String PlantData::getStrDat() {
 void PlantData::recordPlantData(){ //, float intervalavg) {
 
   String dat = getRuntime() + getStrDat();
+
   sdcrw.writeData(dat);
 }
