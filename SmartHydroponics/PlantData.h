@@ -12,15 +12,17 @@ class PlantData {
     void drawChars(uint16_t start_x, uint16_t start_y, char* strmes);
     String getStrDat();
     String getRuntime();
-    void updateOLED(float avgcurrentLevel, float sensLevel, float temp);
+    
     void sendPData(String dat, bool endLine=true);
     void doFifteen();
+    void updatePlantData(float avgcurrentLevel, float sensLevel, float temp);
     
   private:
     void doHourly();
     void doHourFour();
     void doDaily();
     void calcConsumeRate(float currentLevel);
+    void updateOLED();
 };
 
 #endif

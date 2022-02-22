@@ -104,9 +104,9 @@ void PlantData::doHourFour() {
     //as percentage of container max volume - container min volume (set during calibration)
     //calc
     float consumeFRate= prevFourHourAvg - fourHourAvg;//loss over 8 hours
-    if (consumeFRate != 0) {
+    if (consumeFRate > 0) {
       prevConsumeRate = consumeRate;
-      consumeRate = consumeFRate * -3;//convert to loss over one day, should help amplify changes in uptake that could help ID problems
+      consumeRate = consumeFRate * 3.0;//convert to loss over one day, should help amplify changes in uptake that could help ID problems
     //is also useful for more things
 
       daysUntilEmpty = FluidLevel / consumeRate;
@@ -119,12 +119,14 @@ void PlantData::doHourFour() {
   hourFCount = 0;
 }
 
-void PlantData::updateOLED(float avgcurrentLevel, float sensLevel, float temp) {
- // FluidLevel = (FluidLevel + avgcurrentLevel) / 2.0;//Should round out some "noise" spikes
+void PlantData::updatePlantData(float avgcurrentLevel, float sensLevel, float temp){
   FluidLevel = avgcurrentLevel;
   Temp = temp;
-
+  updateOLED();
+}
   
+void PlantData::updateOLED() {
+
   sendPData("!");
   String dat = getStrDat();
   sendPData(dat);

@@ -41,7 +41,7 @@ void SmartMP::checkDataUpdate(){
   runTime = millis();
   unsigned long prevTime = runTime - prev_displayTime;
   if (prevTime > displayDataInterval) {
-    plantdata.updateOLED(bfcalc.currentFluidLevelMean, bfcalc.sensFluidLevel, bfcalc.curTemp);
+    plantdata.updatePlantData(bfcalc.currentFluidLevelMean, bfcalc.sensFluidLevel, bfcalc.curTemp);
     prev_displayTime = runTime;
   };
   prevTime = runTime - prev_dataTime;

@@ -14,8 +14,8 @@ const int readLevelSamples = 16;
 
 float actualLevel = 1.0;
 
-const int emptyWait = 10;//60;// time in seconds to wait before calulating empty fluid levels
-const int fullWait = 10; // {mins, seconds}
+const int emptyWait = 15;//60;// time in seconds to wait before calulating empty fluid levels
+const int fullWait = 15; // {mins, seconds}
 // These pressures should be mostly dependent on the container and should only need to be calibrated once, then reloaded.
 
 float emptyPressure;
@@ -25,7 +25,7 @@ float fullPressure;//4.2;
 // since testing seems to show if directly proportional this could be affecting accuracy
 float curTemp;
 float calibExtPress;
-float calibTemp;
+//float calibTemp;
 
 float currentPressure[readSamples];//last [int readSamples] current pressure readings, * by 100 so as to not have to use float
 int pressureIndex = 0;
@@ -33,7 +33,7 @@ int levelIndex = 0;
 float currentPressureMean;
 float currentFluidLevel[readLevelSamples]; //Hopefully just (currentPressureMean / fullPressureMean) * 100
 float currentFluidLevelMean = 1.0;//from 0-200, >200 is full, <100 is empty
-float sensFluidLevel = 1.0;
+//float sensFluidLevel = 1.0;
 
 
 const PROGMEM char calibrateMes[] = "Enable pump, fill to LOW level. Press button to continue.";
@@ -48,7 +48,7 @@ const PROGMEM char newFluidLevelMes[] = "CFL: ";
 const int buttonPin = 5;
 bool newData = false;
 
-float atmosAdjust = 1.0;
+//float atmosAdjust = 1.0;
 bool isCalib;
 
 float p0;
@@ -104,8 +104,8 @@ void BMPFluidCalc::calibrateFluidMeter(DualBMP *dbmp, PlantData *plantdata) {
   
   delay(50);
   calibrateMaxLvl(dbmp);
-  calibTemp = curTemp;
-  isCalib = true;// <---- tested, above placement is experimental
+  //calibTemp = curTemp;
+  isCalib = true;//
   // add function to detect when liquid has settled and apply a modifier to bring that point to 100% to compensate for final calibration
   // inaccuracies
 }
@@ -227,7 +227,7 @@ void BMPFluidCalc::calcFluidLevel() {
     
     currentFluidLevel[levelIndex] = newFluidLevel;
 
-    sensFluidLevel = newFluidLevel;
+    //sensFluidLevel = newFluidLevel;
     levelIndex++;
     if (levelIndex >= readLevelSamples) {
       levelIndex = 0;
@@ -243,26 +243,12 @@ void BMPFluidCalc::calcFluidLevel() {
 void BMPFluidCalc::reportData() {
   /*DO NOT TOUCH SHIT IS CASH
    * We need to adjust our pressure difference in proportion to the difference of atmospheric pressure change
-   * weighted to our calibration
    */
-  float calibDiff = 1.0;
-  float addVal;
-  if (isCalib) {
-    calibDiff = p1 - calibExtPress;
-   // atmosAdjust = 1.0 + (calibDiff / calibExtPress);
-    atmosAdjust =  1.0 + (calibDiff / (fullPressure - emptyPressure));
-    addVal = (calibDiff / (fullPressure - emptyPressure)) * 100.0;
-  };
   
   
   float pressureDiff = p0 - p1;//Airstone line pressure - airpressure
 
   pressureDiff -= (emptyPressure);// + calibDiff);
-
- // if (isCalib) {
- //   pressureDiff *= 1.0 + (((curTemp - calibTemp) / calibTemp)) / 2.0;//adjust for current temperature. not sure why this is needed
-  //seems to be opposite of thermal expansion?
- // };
   
   currentPressure[pressureIndex] = pressureDiff;
   calc_Avgs();
