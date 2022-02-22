@@ -16,7 +16,7 @@ class BMPFluidCalc {
     void inputPause();
     void countdownTime(int minutes, int secs);
     float getDifferential();
-    float getHyperSample(int samples=0);
+    float getHyperSample(bool verb=false, int samples=0);
     void calibrateMinLvl();
     void calibrateMaxLvl();
     void printData(String mes, bool endline=true, bool toserial=false);

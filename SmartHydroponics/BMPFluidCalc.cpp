@@ -9,17 +9,18 @@
  * meaningful fluid level information?
 */
 
-const int calibrationSamples = 32; //how many pressure samples to average out during calibration
+const int hyperSamples = 32; //how many pressure samples to average out during calibration
+//float hyperSamples[hyperSamples];
 
 const int emptyWait = 15;//60;// time in seconds to wait before calulating empty fluid levels
 const int fullWait = 15; // {mins, seconds}
 // These pressures should be mostly dependent on the container and should only need to be calibrated once, then reloaded.
 
-float emptyPressure;
+float emptyPressure = 0.0;
 float fullPressure;//4.2;
 
 float fluidLevel;
-int fluidLevelDiv;
+int fluidLevelDiv = 0;
 //We're going to try to adjust pressure measurements by temp readouts in proportion to the calibraton temp,
 // since testing seems to show if directly proportional this could be affecting accuracy
 float curTemp;
@@ -29,14 +30,10 @@ const PROGMEM char diffMes[] = "Calc. min pressure";
 const PROGMEM char fillMes[] = "Fill to MAX then press button to continue.";
 const PROGMEM char maxPressMes[] = "Full pressure set to: ";
 const PROGMEM char calCompMes[] = "Calibration Completed.";
-const PROGMEM char cFluidLevelMes[] = " AFL: ";
-const PROGMEM char newFluidLevelMes[] = "CFL: ";
 
 const int buttonPin = 5;
-bool newData = false;
-
-//float atmosAdjust = 1.0;
 bool isCalib;
+bool newData;
 
 PlantData *pdata;
 
@@ -47,6 +44,9 @@ float BMPFluidCalc::getDifferential() {
   //Updates sensors and reports pressure to system fluid level calculator
   dbmp.updateSensors();
   float p0p1 = dbmp.P[0] - dbmp.P[1];//Differential pressure reading
+ // if (isCalib == true) {
+  p0p1 -= emptyPressure;
+ // };
   return p0p1;
 }
 
@@ -83,7 +83,8 @@ void BMPFluidCalc::calibrateFluidMeter() {
   calibrateMinLvl();
   delay(50);
   calibrateMaxLvl();
-  isCalib = true;//
+  isCalib = true;
+  
 }
 
 
@@ -102,7 +103,8 @@ void BMPFluidCalc::calibrateMinLvl() {
   printData(mes);// Displays "Calc min pressure"
 
   //Get pressure differential readings at minimum fluid level and average them out
-  emptyPressure = getHyperSample();
+  float ePress = getHyperSample(true);
+  emptyPressure = ePress;
   
   printData("!");
   mes = "\nMin P is: " + String(emptyPressure) + "\n";
@@ -111,38 +113,45 @@ void BMPFluidCalc::calibrateMinLvl() {
   // Also begin averaging the external pressure reading during calibration
 
 float BMPFluidCalc::checkFluidLevel() {
-  fluidLevel += getDifferential();
-  fluidLevelDiv++;
+  //float newHS = getHyperSample();
+  fluidLevel = getHyperSample();
+  //fluidLevel += newHS;
+  //fluidLevelDiv++;
 };
 
 float BMPFluidCalc::getFluidLevel(bool resetAverage=false){
-  float fluidlevel = 1.0;
-  if (fluidLevelDiv > 0) {
-    fluidlevel = fluidLevel / fluidLevelDiv;
-  };
-  if (resetAverage) {
-    fluidLevel = 0.0;
-    fluidLevelDiv =0;
-  };
-  return fluidlevel;
+  float flevel = fluidLevel / fullPressure;
+//  if (fluidLevelDiv > 0) {
+ //   flevel = fluidLevel / fluidLevelDiv;
+ ///   flevel /= fullPressure;
+//  };
+ // if (resetAverage == true) {
+ //   fluidLevel = 0.0;
+ //   fluidLevelDiv =0;
+ // };
+  return flevel;
 }
 
-float BMPFluidCalc::getHyperSample(int samples=0) {
-  float avgDiff;
+float BMPFluidCalc::getHyperSample(bool verb=false, int samples=0) {
+  float avgDiff = 0.0;
   if (samples == 0) { 
-    samples = calibrationSamples;
+    samples = hyperSamples;
   };
   for (int i = 0; i < samples; i++) {
     float diff = getDifferential();
     avgDiff += diff;
+    if (verb == true) {
+      printData(String(avgDiff / (i+1)) + ", ", false);
+    };    
   };
   avgDiff /= samples;
+
   return avgDiff;
 }
 
 void BMPFluidCalc::printData(String mes, bool endline=true, bool toserial=false) {
   //output to oled or serial, for debug/calibration. Handled by PlantData module
-  pdata ->sendPData(mes, endline, toserial);
+  pdata ->sendPData(mes, endline, true, toserial);
 };
 
 void BMPFluidCalc::calibrateMaxLvl() {
@@ -152,8 +161,9 @@ void BMPFluidCalc::calibrateMaxLvl() {
   printData("!");
   countdownTime(0, fullWait);//wait min, sec for liquid to settle. Good @ 30, set to 10 for debug
   
-  fullPressure = getHyperSample();
-
-  mes = "Max P: " + String(fullPressure);
+  fullPressure = getHyperSample(true);
+  printData("!");
+  mes = "Max P: " + String(fullPressure) + "\nCalibration Complete.";
   printData(mes);
+  delay(1000);
 };

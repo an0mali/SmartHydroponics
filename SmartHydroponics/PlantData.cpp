@@ -32,6 +32,8 @@ float prevConsumeRate = 0.0;
 float consumeLevel = 1.0;//Stores hourly avg level data for rate consumption calcuation
 float prevConsumeLevel = 1.0;
 
+float FluidRead = 0.0;
+int FluidReadCnt = 0;
 float FluidLevel = 1.0;//storage for previously passed values, because display and timer intervals may be asyncronous
 float Temp;
 
@@ -73,6 +75,8 @@ String PlantData::getRuntime() {
 
 void PlantData::doFifteen() {
   //call this via PlantMP at its 15 minute check interval
+  FluidRead = 0.0;
+  FluidReadCnt = 0;
   hourFAvgTotal += FluidLevel;
   hourFAvgDiv++;
   fifteenMinInt++;
@@ -119,10 +123,12 @@ void PlantData::doHourFour() {
   hourFCount = 0;
 }
 
-void PlantData::updatePlantData(float avgcurrentLevel, float temp0, float temp1){
-  FluidLevel = avgcurrentLevel;
+void PlantData::reportPlantData(float avgcurrentLevel, float temp0, float temp1){
+  FluidRead += avgcurrentLevel;
+  FluidReadCnt++;
+  FluidLevel = FluidRead / FluidReadCnt;
   Temp = temp1;
-  updateOLED();
+  Serial.println("Lvl: " + String(avgcurrentLevel * 100.0) + "\tLTLvl: " + String(FluidLevel * 100) + "\tTmp0: " + String(temp0) + "\tTmp1: " + String(temp1));
 }
   
 void PlantData::updateOLED() {
@@ -155,11 +161,11 @@ void PlantData::updateOLED() {
 void PlantData::sendPData(String dat, bool endLine=true, bool toOLED=true, bool toSerial=false) {
   if (toOLED) {
   if (endLine) {
-  link.println(dat);
-  } else {
-    link.print(dat + "&");
-  };
-  delay(50);
+    link.println(dat);
+    } else {
+      link.print(dat + "&");
+    };
+    delay(10);
   };
   if (toSerial) {
     if (endLine) {
@@ -167,6 +173,7 @@ void PlantData::sendPData(String dat, bool endLine=true, bool toOLED=true, bool 
     } else {
       Serial.print(dat);
     };
+    delay(10);
   };
 }
 

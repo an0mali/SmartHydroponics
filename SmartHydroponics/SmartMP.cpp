@@ -27,27 +27,31 @@ void SmartMP::SMP_init(){
   //Serial.println("dataInterval is: " + String(dataInterval));
   plantdata.init_PlantData();
   bfcalc.init_fluidMeter(&plantdata);//calibrate fluid level calculations
+  plantdata.reportPlantData(1.0, 24,24);
 }
 
 void SmartMP::SMP_loop() {
-  bfcalc.checkFluidLevel();
   checkDataUpdate();
 }
 
 void SmartMP::checkDataUpdate(){
   runTime = millis();
-  unsigned long prevTime = runTime - prev_displayTime;
-  if (prevTime > displayDataInterval) {
-    float curFluidLevel = bfcalc.getFluidLevel();
-    plantdata.updatePlantData(curFluidLevel, bfcalc.dbmp.T[0],bfcalc.dbmp.T[1]);
-    prev_displayTime = runTime;
-  };
-  prevTime = runTime - prev_dataTime;
-  
+  unsigned long prevTime = runTime - prev_dataTime;
+  bool isFifteen = false;
   if (prevTime > dataInterval) {
-    //called every 15 mins
-    plantdata.doFifteen();
+    isFifteen = true;
     prev_dataTime = runTime;
+  };
+  bfcalc.checkFluidLevel();
+  float curFluidLevel = bfcalc.getFluidLevel(isFifteen);//isFifteen tells it to reset the current average calculations
+  plantdata.reportPlantData(curFluidLevel, bfcalc.dbmp.T[0],bfcalc.dbmp.T[1]);
+  prevTime = runTime - prev_displayTime;
+  if (prevTime > displayDataInterval) {
+    prev_displayTime = runTime;
+    plantdata.updateOLED();
+  };
+  if (isFifteen == true) {
+    plantdata.doFifteen();
   };
 }
 

@@ -15,14 +15,15 @@ class PlantData {
     
     void sendPData(String dat, bool endLine=true, bool toOLED=true, bool toSerial=false);
     void doFifteen();
-    void updatePlantData(float avgcurrentLevel, float temp0, float temp1);
+    void reportPlantData(float avgcurrentLevel, float temp0, float temp1);
+    void updateOLED();    
     
   private:
     void doHourly();
     void doHourFour();
     void doDaily();
     void calcConsumeRate(float currentLevel);
-    void updateOLED();
+
 };
 
 #endif
