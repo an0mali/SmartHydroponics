@@ -16,8 +16,8 @@ const int emptyWait = 15;//60;// time in seconds to wait before calulating empty
 const int fullWait = 15; // {mins, seconds}
 // These pressures should be mostly dependent on the container and should only need to be calibrated once, then reloaded.
 
-float emptyPressure = 0.0;
-float fullPressure;//4.2;
+int32_t emptyPressure = 0.0;
+int32_t fullPressure;//4.2;
 
 float fluidLevel;
 int fluidLevelDiv = 0;
@@ -82,8 +82,9 @@ void BMPFluidCalc::calibrateFluidMeter() {
 
   calibrateMinLvl();
   delay(50);
-  calibrateMaxLvl();
   isCalib = true;
+  calibrateMaxLvl();
+  
   
 }
 

@@ -11,8 +11,7 @@ const PROGMEM char sucessMes[]  = "DualBMP: READY!";
 
 bool showCalibration = false;
 
-int32_t t0 = 0;
-int32_t t1 = 0;
+int32_t rawP[2];
 //0 == internal/airin/differential sensor, 1== external/rootemp sensor
 
 DualBMP::DualBMP() {
@@ -55,17 +54,14 @@ void DualBMP::updateSensors() {
     b5[eachsens] = temperature(eachsens);
   };
 
- // if (t0 == 0) {
- ///   t0 = b5[0];
-//    t1 = b5[1];
- // }
+  int32_t tAvg = (b5[0] + b5[1]) / 2.0;
   
   for (int eachsens = 0; eachsens < 2 ; eachsens++) {
     praw[eachsens] = read_pressure(eachsens);
   };
 
-   P[0] = pressure(b5[0], 0, praw[0]);
-   P[1] = pressure(b5[0], 1, praw[1]);
+   P[0] = pressure(T[1], 0, praw[0]);
+   P[1] = pressure(T[1], 1, praw[1]);
 
 }
 
@@ -116,7 +112,7 @@ int32_t DualBMP::read_pressure(int sensnr)
   delay(osd);
 
   value = Sens[sensnr].Get24bitFromRegister(0xf6);
-  
+  rawP[sensnr] = value;
   return (value); // Return value
 }
 

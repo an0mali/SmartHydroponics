@@ -13,12 +13,14 @@ class DualBMP {
     void updateSensors();
     void beginSense();
     float T[2], P[2];//Temp, Pressure
+    int32_t rawP[2];
+    float pressure(int32_t b5, int sensnr, int32_t UP);
     
   private:
     void init_SENSOR(int sensnr);
     int32_t temperature(int sensnr);
     int32_t read_pressure(int sensnr);   
-    float pressure(int32_t b5, int sensnr, int32_t UP);
+    
     
     const uint8_t oss = 1;                      // Set oversampling setting
     const uint8_t osd = 8;                     // with corresponding oversampling delay
