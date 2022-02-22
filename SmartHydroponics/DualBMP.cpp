@@ -11,6 +11,8 @@ const PROGMEM char sucessMes[]  = "DualBMP: READY!";
 
 bool showCalibration = false;
 
+int32_t t0 = 0;
+int32_t t1 = 0;
 //0 == internal/airin/differential sensor, 1== external/rootemp sensor
 
 DualBMP::DualBMP() {
@@ -40,10 +42,31 @@ void DualBMP::beginSense() {
 
 void DualBMP::updateSensors() {
   int32_t b5[2];
+  int32_t praw[2];
+  //for (int eachsens = 0; eachsens < 2 ; eachsens++) {
+  //  b5[eachsens] = temperature(eachsens);            // Read and calculate temperature (T)
+  //  P[eachsens] = pressure(b5[eachsens], eachsens);
+
+  //At first glance this seems redundant... but-
+  //knock temp reads out first so we can get as close as possible to a "simulataneous" read of p0 and p1
+  //The closer we get to simultaneous reads of each pressure the more accurate our calculations
+  //So we'll read temperature, read raw data, then do calcs for each sensor
   for (int eachsens = 0; eachsens < 2 ; eachsens++) {
-    b5[eachsens] = temperature(eachsens);            // Read and calculate temperature (T)
-    P[eachsens] = pressure(b5[eachsens], eachsens);
+    b5[eachsens] = temperature(eachsens);
   };
+
+ // if (t0 == 0) {
+ ///   t0 = b5[0];
+//    t1 = b5[1];
+ // }
+  
+  for (int eachsens = 0; eachsens < 2 ; eachsens++) {
+    praw[eachsens] = read_pressure(eachsens);
+  };
+
+   P[0] = pressure(b5[0], 0, praw[0]);
+   P[1] = pressure(b5[0], 1, praw[1]);
+
 }
 
 void DualBMP::init_SENSOR(int sensnr)
@@ -97,13 +120,11 @@ int32_t DualBMP::read_pressure(int sensnr)
   return (value); // Return value
 }
 
-float DualBMP::pressure(int32_t b5, int sensnr)
+float DualBMP::pressure(int32_t b5, int sensnr, int32_t UP)
 {
 
-  int32_t x1, x2, x3, b3, b6, p, UP;
+  int32_t x1, x2, x3, b3, b6, p;
   uint32_t b4, b7;
-
-  UP = read_pressure(sensnr);  // Read raw pressure
   //return float(UP);
   b6 = b5 - 4000;
   //b6 = 1;

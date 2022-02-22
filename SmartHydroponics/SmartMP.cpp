@@ -13,7 +13,7 @@ unsigned long prev_dataTime = 0;
 unsigned long runTime;
 
 //const int displayIntervalSecs = 5;//display update rate
-const long displayDataInterval = 5 * 1000;
+const long displayDataInterval = 2 * 1000;
 unsigned long prev_displayTime = 0;
 
 BMPFluidCalc bfcalc;
@@ -27,7 +27,7 @@ void SmartMP::SMP_init(){
   //Serial.println("dataInterval is: " + String(dataInterval));
   plantdata.init_PlantData();
   bfcalc.init_fluidMeter(&plantdata);//calibrate fluid level calculations
-  plantdata.reportPlantData(1.0, 24,24);
+  plantdata.updateOLED();
 }
 
 void SmartMP::SMP_loop() {

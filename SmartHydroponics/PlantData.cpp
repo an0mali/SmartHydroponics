@@ -75,8 +75,10 @@ String PlantData::getRuntime() {
 
 void PlantData::doFifteen() {
   //call this via PlantMP at its 15 minute check interval
+  Serial.println("\t15min Avg:" + String((FluidRead / FluidReadCnt) * 100));
   FluidRead = 0.0;
   FluidReadCnt = 0;
+  
   hourFAvgTotal += FluidLevel;
   hourFAvgDiv++;
   fifteenMinInt++;
