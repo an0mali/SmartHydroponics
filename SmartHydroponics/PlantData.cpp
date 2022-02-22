@@ -119,9 +119,9 @@ void PlantData::doHourFour() {
   hourFCount = 0;
 }
 
-void PlantData::updatePlantData(float avgcurrentLevel, float sensLevel, float temp){
+void PlantData::updatePlantData(float avgcurrentLevel, float temp0, float temp1){
   FluidLevel = avgcurrentLevel;
-  Temp = temp;
+  Temp = temp1;
   updateOLED();
 }
   
@@ -152,14 +152,22 @@ void PlantData::updateOLED() {
 };
 }
 
-void PlantData::sendPData(String dat, bool endLine=true) {
-  //Serial.println("Sending: " + dat);
+void PlantData::sendPData(String dat, bool endLine=true, bool toOLED=true, bool toSerial=false) {
+  if (toOLED) {
   if (endLine) {
   link.println(dat);
   } else {
     link.print(dat + "&");
   };
-  delay(100);
+  delay(50);
+  };
+  if (toSerial) {
+    if (endLine) {
+      Serial.println(dat);
+    } else {
+      Serial.print(dat);
+    };
+  };
 }
 
 String PlantData::getStrDat() {

@@ -2,7 +2,6 @@
 
 #ifndef SmartMP_h
 #define SmartMP_h
-#include "DualBMP.h"
 #include "BMPFluidCalc.h"
 #include <Arduino.h>
 
@@ -12,12 +11,11 @@
 class SmartMP {
   public:
     SmartMP();
-    BMPFluidCalc bfcalc;
-    void SMP_init(DualBMP *dbmp);
+    void SMP_init();
     void SMP_loop();
-    void calibrateFluidLevel(DualBMP *dbmp);
   private:
     void checkDataUpdate();
+    void calibrateFluidLevel();
 };
 
 #endif

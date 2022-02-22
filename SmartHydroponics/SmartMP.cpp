@@ -1,6 +1,5 @@
 //Contains SmartMicroponics Functionality, essentially the main thread
 #include "SmartMP.h"
-#include "DualBMP.h"
 #include "PlantData.h"
 #include "ProgMemStr.h"
 #include "BMPFluidCalc.h"
@@ -18,22 +17,20 @@ const long displayDataInterval = 5 * 1000;
 unsigned long prev_displayTime = 0;
 
 BMPFluidCalc bfcalc;
-DualBMP *d_bmp;
 PlantData plantdata;
-
+ProgMemStr *pmstr;
 
 SmartMP::SmartMP() {
 }
 
-void SmartMP::SMP_init(DualBMP *dbmp){
+void SmartMP::SMP_init(){
   //Serial.println("dataInterval is: " + String(dataInterval));
-  d_bmp = dbmp;
   plantdata.init_PlantData();
-  calibrateFluidLevel(d_bmp);//calibrate fluid level calculations
+  bfcalc.init_fluidMeter(&plantdata);//calibrate fluid level calculations
 }
 
 void SmartMP::SMP_loop() {
-  bfcalc.senseAndReport(d_bmp);
+  bfcalc.checkFluidLevel();
   checkDataUpdate();
 }
 
@@ -41,7 +38,8 @@ void SmartMP::checkDataUpdate(){
   runTime = millis();
   unsigned long prevTime = runTime - prev_displayTime;
   if (prevTime > displayDataInterval) {
-    plantdata.updatePlantData(bfcalc.currentFluidLevelMean, bfcalc.sensFluidLevel, bfcalc.curTemp);
+    float curFluidLevel = bfcalc.getFluidLevel();
+    plantdata.updatePlantData(curFluidLevel, bfcalc.dbmp.T[0],bfcalc.dbmp.T[1]);
     prev_displayTime = runTime;
   };
   prevTime = runTime - prev_dataTime;
@@ -53,12 +51,12 @@ void SmartMP::checkDataUpdate(){
   };
 }
 
-void SmartMP::calibrateFluidLevel(DualBMP *dbmp) {
+void SmartMP::calibrateFluidLevel() {
   //Calibrate fluid level
   if (not isCalibrated) {
     plantdata.sendPData("Calibrating...");
     delay(500);
     plantdata.sendPData("!");
-    bfcalc.calibrateFluidMeter(dbmp, &plantdata);
+    bfcalc.calibrateFluidMeter();
   };
 }

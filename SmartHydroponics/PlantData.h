@@ -13,9 +13,9 @@ class PlantData {
     String getStrDat();
     String getRuntime();
     
-    void sendPData(String dat, bool endLine=true);
+    void sendPData(String dat, bool endLine=true, bool toOLED=true, bool toSerial=false);
     void doFifteen();
-    void updatePlantData(float avgcurrentLevel, float sensLevel, float temp);
+    void updatePlantData(float avgcurrentLevel, float temp0, float temp1);
     
   private:
     void doHourly();

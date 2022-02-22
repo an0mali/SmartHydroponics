@@ -7,21 +7,19 @@
 class BMPFluidCalc {
   public:
     BMPFluidCalc();
-    void calibrateFluidMeter(DualBMP *dbmp, PlantData *plantdata);
-    void senseAndReport(DualBMP *dbmp, bool verbPressure=false);
-    void printAvgFluidLvl();
-    float currentFluidLevelMean;
-    float sensFluidLevel;
-    float curTemp;
+    void calibrateFluidMeter();
+    float checkFluidLevel();
+    void init_fluidMeter(PlantData *plantdata);
+    float getFluidLevel(bool resetAverage=false);
+    DualBMP dbmp;
   private:
     void inputPause();
     void countdownTime(int minutes, int secs);
-    void calc_Avgs();
-    void calcFluidLevelAvg();
-    void calcFluidLevel();
-    void reportData();
-    void calibrateMinLvl(DualBMP *dbmp);
-    void calibrateMaxLvl(DualBMP *dbmp);
+    float getDifferential();
+    float getHyperSample(int samples=0);
+    void calibrateMinLvl();
+    void calibrateMaxLvl();
+    void printData(String mes, bool endline=true, bool toserial=false);
 };
 
 #endif
