@@ -22,8 +22,8 @@ class DualBMP {
     int32_t read_pressure(int sensnr);   
     
     
-    const uint8_t oss = 1;                      // Set oversampling setting
-    const uint8_t osd = 8;                     // with corresponding oversampling delay
+    const uint8_t oss = 3;                      // Set oversampling setting
+    const uint8_t osd = 26;                     // with corresponding oversampling delay
     /*
      * 3 is highest resolution, but for our use case we need to compare 2 sensors as quick as possible and that 
      * high of resolution is unuseable noise.

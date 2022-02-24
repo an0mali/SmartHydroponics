@@ -24,6 +24,9 @@ int fluidLevelDiv = 0;
 //We're going to try to adjust pressure measurements by temp readouts in proportion to the calibraton temp,
 // since testing seems to show if directly proportional this could be affecting accuracy
 float curTemp;
+float calibTemp;
+
+float ePressP1;
 
 const PROGMEM char calibrateMes[] = "Enable pump, fill to LOW level. Press button to continue.";
 const PROGMEM char diffMes[] = "Calc. min pressure";
@@ -44,11 +47,18 @@ float BMPFluidCalc::getDifferential() {
   //Updates sensors and reports pressure to system fluid level calculator
   dbmp.updateSensors();
   float p0p1 = dbmp.P[0] - dbmp.P[1];//Differential pressure reading
- // if (isCalib == true) {
-  p0p1 -= emptyPressure;
- // };
+  //float pRatio = ePressP1 / dbmp.P[1];
+  float ePress = emptyPressure;
+  
+  if (isCalib == true) {
+    float pdiff = dbmp.P[1] - ePressP1;
+    //ePress += pdiff;
+   //   ePress *= pRatio;
+  };
+  
+  p0p1 -= ePress;
   return p0p1;
-}
+};
 
 void BMPFluidCalc::inputPause() {
   while (true) {
@@ -106,10 +116,13 @@ void BMPFluidCalc::calibrateMinLvl() {
   //Get pressure differential readings at minimum fluid level and average them out
   float ePress = getHyperSample(true);
   emptyPressure = ePress;
-  
+  ePressP1 = dbmp.P[1];
   printData("!");
   mes = "\nMin P is: " + String(emptyPressure) + "\n";
   printData(mes);
+  //calibTemp = curTemp;
+  //ePressP0 = dbmp.P[0];
+  //ePressP1 = dbmp.P[1];
 }
   // Also begin averaging the external pressure reading during calibration
 
@@ -121,8 +134,11 @@ float BMPFluidCalc::checkFluidLevel() {
 };
 
 float BMPFluidCalc::getFluidLevel(bool resetAverage=false){
-  float flevel = fluidLevel / fullPressure;
-//  if (fluidLevelDiv > 0) {
+  //float pRatio = ePressP1 / dbmp.P[1];
+  float pDiff = dbmp.P[1] - ePressP1;
+  float flevel = fluidLevel / fullPressure;// + pDiff);
+  //flevel *= pRatio;#
+
  //   flevel = fluidLevel / fluidLevelDiv;
  ///   flevel /= fullPressure;
 //  };
@@ -153,7 +169,7 @@ float BMPFluidCalc::getHyperSample(bool verb=false, int samples=0) {
 void BMPFluidCalc::printData(String mes, bool endline=true, bool toserial=false) {
   //output to oled or serial, for debug/calibration. Handled by PlantData module
   pdata ->sendPData(mes, endline, true, toserial);
-};
+}
 
 void BMPFluidCalc::calibrateMaxLvl() {
   String mes = ProgMemStr().getStr(fillMes);
