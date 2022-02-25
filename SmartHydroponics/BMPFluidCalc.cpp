@@ -26,7 +26,9 @@ int fluidLevelDiv = 0;
 float curTemp;
 float calibTemp;
 
+float P0P1min;
 float ePressP1;
+float FullPressP0;
 
 const PROGMEM char calibrateMes[] = "Enable pump, fill to LOW level. Press button to continue.";
 const PROGMEM char diffMes[] = "Calc. min pressure";
@@ -48,15 +50,20 @@ float BMPFluidCalc::getDifferential() {
   dbmp.updateSensors();
   float p0p1 = dbmp.P[0] - dbmp.P[1];//Differential pressure reading
   //float pRatio = ePressP1 / dbmp.P[1];
-  float ePress = emptyPressure;
+  float padj = 0.0;
   
   if (isCalib == true) {
-    float pdiff = dbmp.P[1] - ePressP1;
-    //ePress += pdiff;
-   //   ePress *= pRatio;
+    float p1diff = dbmp.P[1] - ePressP1;
+    float absp1 = abs(p1diff);
+    if (absp1 > 2) {
+      padj = sqrt(absp1);//
+    if (p1diff > 0) {
+      p1diff *= -1;
+    };
   };
-  
-  p0p1 -= ePress;
+  };
+  p0p1 -= emptyPressure;
+  p0p1 += padj;
   return p0p1;
 };
 
@@ -120,7 +127,8 @@ void BMPFluidCalc::calibrateMinLvl() {
   printData("!");
   mes = "\nMin P is: " + String(emptyPressure) + "\n";
   printData(mes);
-  //calibTemp = curTemp;
+  calibTemp = curTemp;
+  P0P1min = dbmp.P[0] - dbmp.P[1];
   //ePressP0 = dbmp.P[0];
   //ePressP1 = dbmp.P[1];
 }
@@ -135,8 +143,12 @@ float BMPFluidCalc::checkFluidLevel() {
 
 float BMPFluidCalc::getFluidLevel(bool resetAverage=false){
   //float pRatio = ePressP1 / dbmp.P[1];
-  float pDiff = dbmp.P[1] - ePressP1;
-  float flevel = fluidLevel / fullPressure;// + pDiff);
+  int pDiff0 = dbmp.P[0] - FullPressP0;
+  int pDiff1 = dbmp.P[1] - ePressP1;
+  //float adj = pDiff1 - pDiff0;
+  //float ctRatio = 1.0;//(curTemp/ calibTemp);
+  float flevel = (fluidLevel) / (fullPressure);// * ctRatio);// + pDiff);
+  Serial.print("P0P1avg: " + String(fluidLevel) + "\tP0P1: " + String(dbmp.P[0] - dbmp.P[1]) + "\tp1Diff: " + String(pDiff1) + "\tp0Diff: " + String(pDiff0) + "\t");
   //flevel *= pRatio;#
 
  //   flevel = fluidLevel / fluidLevelDiv;
@@ -182,5 +194,6 @@ void BMPFluidCalc::calibrateMaxLvl() {
   printData("!");
   mes = "Max P: " + String(fullPressure) + "\nCalibration Complete.";
   printData(mes);
+  FullPressP0 = dbmp.P[0];
   delay(1000);
 };

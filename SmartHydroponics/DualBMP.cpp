@@ -10,7 +10,7 @@ const PROGMEM char initMes[]  = "DualBMP: Initializing barometric pressure senso
 const PROGMEM char sucessMes[]  = "DualBMP: READY!";
 
 bool showCalibration = false;
-
+float calTemp = 0.0;
 int32_t rawP[2];
 //0 == internal/airin/differential sensor, 1== external/rootemp sensor
 
@@ -64,12 +64,13 @@ void DualBMP::updateSensors() {
  float rawAvg = (praw[0] + praw[1]) / 2.0;
  float rawDiff = (praw[0] - praw[1]) / 2.0;
  
-
+   P[0] = pressure(T[0], 0, praw[0]);// 
+   P[1] = pressure(T[1], 1, praw[1]);
  //P[0] = pressure(tavg - tdiff, 0, praw[0]);// 
 // P[1] = pressure(T[1], 1, praw[1]);
 
- P[0] = pressure(26.0, 0, rawAvg + rawDiff);//
- P[1] = pressure(27.0, 1, rawAvg - rawDiff);
+ //P[0] = (pressure(T[0], 0, rawAvg + rawDiff));;//
+ //P[1] = pressure(T[1], 1, rawAvg - rawDiff);
  
 // P[0] = pressure(T[0], 0, rawAvg + rawDiff);// Seems to mostly work, slight variation overtime
  //P[1] = pressure(T[1], 1, rawAvg - rawDiff);
@@ -108,7 +109,7 @@ int32_t DualBMP::temperature(int sensnr)
   x2 = ((int32_t)mc[sensnr] << 11) / (x1 + (int32_t)md[sensnr]);
   b5 = x1 + x2;
   T[sensnr]  = (b5 + 8) >> 4;
-  T[sensnr] = T[sensnr] ;// drop the /10 fuck it / 10.0;                           // Temperature in celsius
+  T[sensnr] = T[sensnr] /10.0;// fuck it / 10.0;                           // Temperature in celsius
   return b5;
 }
 /**********************************************
