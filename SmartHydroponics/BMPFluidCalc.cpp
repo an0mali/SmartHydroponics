@@ -49,23 +49,32 @@ float BMPFluidCalc::getDifferential() {
   //Updates sensors and reports pressure to system fluid level calculator
   dbmp.updateSensors();
   float p0p1 = dbmp.P[0] - dbmp.P[1];//Differential pressure reading
+  //float p0p1 = dbmp.P[0];//Differential pressure reading
   //float pRatio = ePressP1 / dbmp.P[1];
+  curTemp = dbmp.T[1];
+  float tdiff = abs(curTemp + calibTemp);
+  float tavg = (curTemp + calibTemp) / 2.0;
   float padj = 0.0;
-  
+  float p1diff = 1.0;
   if (isCalib == true) {
-    float p1diff = dbmp.P[1] - ePressP1;
-    float absp1 = abs(p1diff);
-    if (absp1 > 0) {
-      padj = sqrt(absp1);//
+    p1diff = (dbmp.rawP[1] + ePressP1) / 2.0;
+    p1diff = dbmp.pressure(tdiff, 1, p1diff);
+    p1diff /= dbmp.P[1];
+    //float absp1 = abs(p1diff);
+   // if (absp1 > 0) {
+    //  padj = absp1 - (sqrt(padj) * 0.08);// + ((absp1) * 0.5);//
+      //padj = padj - (sqrt(padj) * (0.15));
+      
       //Serial.println("Cubic: " + String(padj));
     //padj *= 2;
-    if (p1diff > 0) {
-      padj *= -1;
+   // if (p1diff > 0) {
+   //   padj *= -1;
     };
-  };
-  };
+  //};
+ // };
   p0p1 -= emptyPressure;
-  p0p1 += padj;
+  p0p1 *= p1diff;
+  //p0p1 += padj;
   return p0p1;
 };
 
@@ -125,7 +134,7 @@ void BMPFluidCalc::calibrateMinLvl() {
   //Get pressure differential readings at minimum fluid level and average them out
   float ePress = getHyperSample(true);
   emptyPressure = ePress;
-  ePressP1 = dbmp.P[1];
+  ePressP1 = dbmp.rawP[1];
   printData("!");
   mes = "\nMin P is: " + String(emptyPressure) + "\n";
   printData(mes);
@@ -146,7 +155,7 @@ float BMPFluidCalc::checkFluidLevel() {
 float BMPFluidCalc::getFluidLevel(bool resetAverage=false){
   //float pRatio = ePressP1 / dbmp.P[1];
   int pDiff0 = dbmp.P[0] - FullPressP0;
-  int pDiff1 = dbmp.P[1] - ePressP1;
+  int pDiff1 = dbmp.rawP[1] - ePressP1;
   //float adj = pDiff1 - pDiff0;
   //float ctRatio = 1.0;//(curTemp/ calibTemp);
   float flevel = (fluidLevel) / (fullPressure);// * ctRatio);// + pDiff);
