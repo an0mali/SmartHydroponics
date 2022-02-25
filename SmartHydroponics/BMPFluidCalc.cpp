@@ -9,11 +9,11 @@
  * meaningful fluid level information?
 */
 
-const int hyperSamples = 32; //how many pressure samples to average out during calibration
+const int hyperSamples = 16; //how many pressure samples to average out during calibration
 //float hyperSamples[hyperSamples];
 
-const int emptyWait = 15;//60;// time in seconds to wait before calulating empty fluid levels
-const int fullWait = 15; // {mins, seconds}
+const int emptyWait = 5;//60;// time in seconds to wait before calulating empty fluid levels
+const int fullWait = 5; // {mins, seconds}
 // These pressures should be mostly dependent on the container and should only need to be calibrated once, then reloaded.
 
 int32_t emptyPressure = 0.0;
@@ -55,10 +55,12 @@ float BMPFluidCalc::getDifferential() {
   if (isCalib == true) {
     float p1diff = dbmp.P[1] - ePressP1;
     float absp1 = abs(p1diff);
-    if (absp1 > 2) {
+    if (absp1 > 0) {
       padj = sqrt(absp1);//
+      //Serial.println("Cubic: " + String(padj));
+    //padj *= 2;
     if (p1diff > 0) {
-      p1diff *= -1;
+      padj *= -1;
     };
   };
   };
