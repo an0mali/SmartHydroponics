@@ -64,7 +64,7 @@ float BMPFluidCalc::getDifferential() {
   p0p1 *= p1ratio;
   p0p1 -= emptyPressure;
   if (isCalib == true) {
-    p0p1 += (p0p1 * (p1diff / 10000.0));
+    //p0p1 += (p0p1 * (p1diff / 100000.0));
   }
   return p0p1;
 };
