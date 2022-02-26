@@ -59,16 +59,6 @@ void DualBMP::updateSensors() {
     praw[eachsens] = read_pressure(eachsens);
   };
 
- //if (epress1 == 0.0) {
- // epress1 = praw[1];
- // calTemp = T[0];
- //};
-
-// float epressDiff = praw[1] - epress1;
-// float eDiff = pressure(calTemp, 1, epressDiff);
-// float tempOffset = pressure(T[0], 1, epressDiff);
-// tempOffset -= eDiff;
-
  float tavg = (T[0] + T[1]) / 2.0;
  float tdiff = (T[1] - T[0]) / 2.0;
 
@@ -76,26 +66,7 @@ void DualBMP::updateSensors() {
  float rawDiff = (praw[0] - praw[1]);
   P[0] = pressure(tavg + tdiff, 0, praw[0]);
   P[1] = pressure(tavg - tdiff, 1, praw[1]);
- //^ currently most accurate
- 
- //P[0] = pressure(tavg + tdiff, 0, rawAvg + rawDiff);
- // P[1] = pressure(tavg - tdiff, 1, rawAvg - rawDiff);  
-// P[0] = pressure(tavg - tdiff, 0, praw[0]);
-//  P[1] = pressure(tavg + tdiff, 1, praw[1]);
- //P[0] = pressure(25.7, 0, praw[0]);
- // P[1] = pressure(26.3, 1, praw[1]);  
-   //P[0] = pressure(T[0], 0, praw[0]);// 
-  // P[1] = pressure(T[1], 1, praw[1]);
-   
- //P[0] = pressure(tavg - tdiff, 0, praw[0]);// 
-// P[1] = pressure(T[1], 1, praw[1]);
-
- //P[0] = (pressure(T[0], 0, rawAvg + rawDiff));;//
- //P[1] = pressure(T[1], 1, rawAvg - rawDiff);
- 
-// P[0] = pressure(T[0], 0, rawAvg + rawDiff);// Seems to mostly work, slight variation overtime
- //P[1] = pressure(T[1], 1, rawAvg - rawDiff);
-
+  //Hard to explain, but works.
 }
 
 void DualBMP::init_SENSOR(int sensnr)
