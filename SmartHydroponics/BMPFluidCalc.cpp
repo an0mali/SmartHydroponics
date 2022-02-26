@@ -62,9 +62,10 @@ float BMPFluidCalc::getDifferential() {
   //     p0p1 += (p0p1 * (p1diff / 10000.0));
   //    };
     };
-    
   p0p1 -= emptyPressure;
   p0p1 *= p1ratio;
+  
+  
   
   return p0p1;
 };
@@ -147,7 +148,7 @@ float BMPFluidCalc::getFluidLevel(bool resetAverage=false){
   //float adj = pDiff1 - pDiff0;
   //float ctRatio = 1.0;//(curTemp/ calibTemp);
   float flevel = (fluidLevel) / (fullPressure);// * ctRatio);// + pDiff);
-  Serial.print("P0P1avg: " + String(fluidLevel) + "\tP0P1: " + String(dbmp.P[0] - dbmp.P[1]) + "\tp1Diff: " + String(pDiff1) + "\tp0Diff: " + String(pDiff0) + "\t");
+  Serial.print("P0P1avg: " + String(fluidLevel) + "\tp1Diff: " + String(pDiff1) + "\t");
   //flevel *= pRatio;#
 
  //   flevel = fluidLevel / fluidLevelDiv;

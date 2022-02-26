@@ -61,7 +61,7 @@ bool SDCRW::checkIsCalibrated() {
 }
 
 void SDCRW::checkDirExists() {
-  String mDir = "SmHydro";
+  String mDir = "SHyd";
   if (not SD.exists(mDir)) {
     SD.mkdir(mDir);
     String heads[5]  = {"F", "8", "24", "W", "30"};

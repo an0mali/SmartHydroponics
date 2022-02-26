@@ -130,7 +130,7 @@ void PlantData::reportPlantData(float avgcurrentLevel, float temp0, float temp1)
   FluidReadCnt++;
   FluidLevel = FluidRead / FluidReadCnt;
   Temp = temp1;
-  Serial.println("Lvl: " + String(avgcurrentLevel * 100.0) + " LTLvl: " + String(FluidLevel * 100) + "\tTmp0: " + String(temp0) + " Tmp1: " + String(temp1));
+  Serial.println("Lvl: " + String(avgcurrentLevel * 100.0) + "\tLTLvl: " + String(FluidLevel * 100) + "\tTmp0: " + String(temp0) + " Tmp1: " + String(temp1));
 }
   
 void PlantData::updateOLED() {
