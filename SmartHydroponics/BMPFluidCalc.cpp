@@ -80,7 +80,7 @@ float BMPFluidCalc::getDifferential() {
     
     if (p1diff != 0.0) {
       //Serial.println("p1diff is " + String(p1diff));
-      //p0p1 += p0p1 * (p1diff / 10000.0); 
+      p0p1 += p0p1 * (p1diff / 100000.0); 
     };
   };
  
