@@ -60,7 +60,7 @@ void DualBMP::updateSensors() {
   };
 
  float tavg = (T[0] + T[1]) / 2.0;
- float tdiff = (T[1] - T[0]) / 2.0;
+ float tdiff = (T[1] - T[0]) / 2.0;// is this incorrect?
 
  float rawAvg = (praw[0] + praw[1]) / 2.0;
  float rawDiff = (praw[0] - praw[1]);

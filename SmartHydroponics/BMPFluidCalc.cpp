@@ -49,21 +49,22 @@ float BMPFluidCalc::getDifferential() {
   //Updates sensors and reports pressure to system fluid level calculator
   dbmp.updateSensors();
   float p0p1 = dbmp.P[0] - dbmp.P[1];
-  curTemp = (dbmp.T[1]);
+  curTemp = dbmp.T[1];
   float tadd = curTemp + calibTemp;
   float p1ratio = 1.0;
   float p1diff = dbmp.rawP[1] - ePressP1;
 
-  p0p1 -= emptyPressure;
-  
   if (isCalib == true) {
-    p1ratio = dbmp.pressure(tadd, 1, p1diff);
+    p1ratio = (dbmp.rawP[1] + ePressP1) / 2.0;
+    p1ratio = dbmp.pressure(tadd, 1, p1ratio);
     p1ratio /= dbmp.P[1];
-    p0p1 *= p1ratio;
-    if (abs(p1diff) > 0) {
-      // p0p1 += (p0p1 * (p1diff / 10000.0));
-      };
+   // if (abs(p1diff) > 0) {
+  //     p0p1 += (p0p1 * (p1diff / 10000.0));
+  //    };
     };
+    
+  p0p1 -= emptyPressure;
+  p0p1 *= p1ratio;
   
   return p0p1;
 };
