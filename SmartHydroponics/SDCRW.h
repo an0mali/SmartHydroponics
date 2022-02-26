@@ -8,9 +8,17 @@ class SDCRW {
     SDCRW();
     void init_SDC();
     bool writeData(String dat, String toFile=DATAFILE);
-    void storeHeader(String heads[]);
+    void storeHeader(String heads[], int headCnt);
+    bool checkIsCalibrated();
+    void storeCSV(String list[], int listlen, String fname);
+    
+    float SDCRW::getCalib(char cFile[]);
+    
   private:
     void initDataFile();
+    bool checkIsCalib();
+    void checkDirExists();
+    void SDCRW::mkCSVfile(String subpath, String headers[], int headlen);
     
 };
 
