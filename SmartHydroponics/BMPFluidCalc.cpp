@@ -55,17 +55,17 @@ float BMPFluidCalc::getDifferential() {
   float p1diff = dbmp.rawP[1] - ePressP1;
   if (isCalib == true) {
     p1ratio = (dbmp.rawP[1] + ePressP1) / 2.0;
-    p1ratio = dbmp.pressure(tdiff, 1, p1diff);
+    p1ratio = dbmp.pressure(tdiff, 1, p1ratio);
     p1ratio /= dbmp.P[1];
     if (abs(p1diff) > 0) {
-      p0p1 += (p0p1 * (p1diff / 10000.0));
+     // p0p1 += (p0p1 * (p1diff / 10000.0));
     };
     
     };
 
-  p0p1 *= p1ratio;
+  
   p0p1 -= emptyPressure;
-
+  p0p1 *= p1ratio;
   return p0p1;
 };
 
