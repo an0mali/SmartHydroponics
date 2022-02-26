@@ -55,11 +55,12 @@ float BMPFluidCalc::getDifferential() {
   float tdiff = abs(curTemp + calibTemp);
   float tavg = (curTemp + calibTemp) / 2.0;
   float padj = 0.0;
-  float p1diff = 1.0;
+  float p1ratio = 1.0;
+  float p1diff = dbmp.rawP[1] - ePressP1;
   if (isCalib == true) {
-    p1diff = (dbmp.rawP[1] + ePressP1) / 2.0;
-    p1diff = dbmp.pressure(tdiff, 1, p1diff);
-    p1diff /= dbmp.P[1];
+    p1ratio = (dbmp.rawP[1] + ePressP1) / 2.0;
+    p1ratio = dbmp.pressure(tdiff, 1, p1diff);
+    p1ratio /= dbmp.P[1];
     //float absp1 = abs(p1diff);
    // if (absp1 > 0) {
     //  padj = absp1 - (sqrt(padj) * 0.08);// + ((absp1) * 0.5);//
@@ -72,8 +73,17 @@ float BMPFluidCalc::getDifferential() {
     };
   //};
  // };
+ p0p1 *= p1ratio;
   p0p1 -= emptyPressure;
-  p0p1 *= p1diff;
+  if (isCalib == true) {
+   
+    
+    if (p1diff != 0.0) {
+      //Serial.println("p1diff is " + String(p1diff));
+      //p0p1 += p0p1 * (p1diff / 10000.0); 
+    };
+  };
+ 
   //p0p1 += padj;
   return p0p1;
 };

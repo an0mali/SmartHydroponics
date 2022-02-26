@@ -74,8 +74,12 @@ void DualBMP::updateSensors() {
 
  float rawAvg = (praw[0] + praw[1]) / 2.0;
  float rawDiff = (praw[0] - praw[1]);
- P[0] = pressure(tavg + tdiff, 0, praw[0]);
+  P[0] = pressure(tavg + tdiff, 0, praw[0]);
   P[1] = pressure(tavg - tdiff, 1, praw[1]);
+ //^ currently most accurate
+ 
+ //P[0] = pressure(tavg + tdiff, 0, rawAvg + rawDiff);
+ // P[1] = pressure(tavg - tdiff, 1, rawAvg - rawDiff);  
 // P[0] = pressure(tavg - tdiff, 0, praw[0]);
 //  P[1] = pressure(tavg + tdiff, 1, praw[1]);
  //P[0] = pressure(25.7, 0, praw[0]);
