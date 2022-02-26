@@ -26,7 +26,7 @@ int fluidLevelDiv = 0;
 float curTemp;
 float calibTemp;
 
-//float P0P1min;
+float P0P1min;
 float ePressP1;
 float FullPressP0;
 
@@ -48,25 +48,43 @@ BMPFluidCalc::BMPFluidCalc() {
 float BMPFluidCalc::getDifferential() {
   //Updates sensors and reports pressure to system fluid level calculator
   dbmp.updateSensors();
-  float p0p1 = dbmp.P[0] - dbmp.P[1];
+  float p0p1 = dbmp.P[0] - dbmp.P[1];//Differential pressure reading
+  //float p0p1 = dbmp.P[0];//Differential pressure reading
+  //float pRatio = ePressP1 / dbmp.P[1];
   curTemp = dbmp.T[1];
-  float tadd = curTemp + calibTemp;
+  float tdiff = abs(curTemp + calibTemp);
+  float tavg = (curTemp + calibTemp) / 2.0;
+  float padj = 0.0;
   float p1ratio = 1.0;
   float p1diff = dbmp.rawP[1] - ePressP1;
-
   if (isCalib == true) {
     p1ratio = (dbmp.rawP[1] + ePressP1) / 2.0;
-    p1ratio = dbmp.pressure(tadd, 1, p1ratio);
+    p1ratio = dbmp.pressure(tdiff, 1, p1diff);
     p1ratio /= dbmp.P[1];
-   // if (abs(p1diff) > 0) {
-  //     p0p1 += (p0p1 * (p1diff / 10000.0));
-  //    };
+    //float absp1 = abs(p1diff);
+   // if (absp1 > 0) {
+    //  padj = absp1 - (sqrt(padj) * 0.08);// + ((absp1) * 0.5);//
+      //padj = padj - (sqrt(padj) * (0.15));
+      
+      //Serial.println("Cubic: " + String(padj));
+    //padj *= 2;
+   // if (p1diff > 0) {
+   //   padj *= -1;
     };
+  //};
+ // };
+ p0p1 *= p1ratio;
   p0p1 -= emptyPressure;
-  p0p1 *= p1ratio;
-  
-  
-  
+  if (isCalib == true) {
+   
+    
+    if (p1diff != 0.0) {
+      //Serial.println("p1diff is " + String(p1diff));
+      //p0p1 += p0p1 * (p1diff / 10000.0); 
+    };
+  };
+ 
+  //p0p1 += padj;
   return p0p1;
 };
 
@@ -131,15 +149,18 @@ void BMPFluidCalc::calibrateMinLvl() {
   mes = "\nMin P is: " + String(emptyPressure) + "\n";
   printData(mes);
   calibTemp = curTemp;
-  //P0P1min = dbmp.P[0] - dbmp.P[1];
-};
+  P0P1min = dbmp.P[0] - dbmp.P[1];
+  //ePressP0 = dbmp.P[0];
+  //ePressP1 = dbmp.P[1];
+}
+  // Also begin averaging the external pressure reading during calibration
 
 float BMPFluidCalc::checkFluidLevel() {
   //float newHS = getHyperSample();
   fluidLevel = getHyperSample();
   //fluidLevel += newHS;
   //fluidLevelDiv++;
-}
+};
 
 float BMPFluidCalc::getFluidLevel(bool resetAverage=false){
   //float pRatio = ePressP1 / dbmp.P[1];
@@ -148,7 +169,7 @@ float BMPFluidCalc::getFluidLevel(bool resetAverage=false){
   //float adj = pDiff1 - pDiff0;
   //float ctRatio = 1.0;//(curTemp/ calibTemp);
   float flevel = (fluidLevel) / (fullPressure);// * ctRatio);// + pDiff);
-  Serial.print("P0P1avg: " + String(fluidLevel) + "\tp1Diff: " + String(pDiff1) + "\t");
+  Serial.print("P0P1avg: " + String(fluidLevel) + "\tP0P1: " + String(dbmp.P[0] - dbmp.P[1]) + "\tp1Diff: " + String(pDiff1) + "\tp0Diff: " + String(pDiff0) + "\t");
   //flevel *= pRatio;#
 
  //   flevel = fluidLevel / fluidLevelDiv;
@@ -173,7 +194,6 @@ float BMPFluidCalc::getHyperSample(bool verb=false, int samples=0) {
       printData(String(avgDiff / (i+1)) + ", ", false);
     };    
   };
-  
   avgDiff /= samples;
 
   return avgDiff;
