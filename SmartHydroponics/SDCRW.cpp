@@ -35,6 +35,10 @@ void SDCRW::init_SDC() {
   ProgMemStr().printCharMes(initSuccessMes);
 }
 
+void SDCRW::storeHeader(String heads[]) {
+  
+};
+
 void SDCRW::initDataFile() {
   plantData = SD.open(DATAFILE, FILE_WRITE);
   if (plantData) {
