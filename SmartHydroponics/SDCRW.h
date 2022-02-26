@@ -8,8 +8,10 @@ class SDCRW {
     SDCRW();
     void init_SDC();
     bool writeData(String dat, String toFile=DATAFILE);
+    void storeHeader(String heads[]);
   private:
     void initDataFile();
+    
 };
 
 #endif

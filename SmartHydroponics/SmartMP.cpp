@@ -59,7 +59,7 @@ void SmartMP::calibrateFluidLevel() {
   //Calibrate fluid level
   if (not isCalibrated) {
     plantdata.sendPData("Calibrating...");
-    delay(500);
+    //delay(500);
     plantdata.sendPData("!");
     bfcalc.calibrateFluidMeter();
   };
