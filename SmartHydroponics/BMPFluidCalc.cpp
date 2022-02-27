@@ -80,8 +80,9 @@ float BMPFluidCalc::getDifferential() {
       //p0p1 += p0p1 * (p1diff / 10000.0);
     };
   };
+ p0p1 -= (emptyPressure);
  p0p1 *= p1diff; 
-  p0p1 -= emptyPressure;
+  
   
   //p0p1 += padj;
   return p0p1;
