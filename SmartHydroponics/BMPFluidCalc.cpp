@@ -66,7 +66,7 @@ float BMPFluidCalc::getDifferential() {
       //padj = padj - (sqrt(padj) * (0.15));
       
       //Serial.println("Cubic: " + String(padj));
-    //padj *= 2;
+    //padj *= 2;geygertg
    // if (p1diff > 0) {
    //   padj *= -1;
     };
@@ -77,11 +77,14 @@ float BMPFluidCalc::getDifferential() {
     
     if (p1diff != 0.0) {  
       //Serial.println("p1diff is " + String(p1diff));
-      //p0p1 += p0p1 * (p1diff / 10000.0);
+      //p0p1 -= p0p1 * (p1diff / 10000.0);
     };
   };
+ p0p1 *= p1diff;
  p0p1 -= (emptyPressure);
- p0p1 *= p1diff; 
+  
+ //p0p1 += sqrt(abs(p1diff));
+ 
   
   
   //p0p1 += padj;
