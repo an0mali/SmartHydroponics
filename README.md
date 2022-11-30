@@ -4,7 +4,7 @@ Arduino project utilizing barometric pressure sensors to create a "smart" hydrop
 The project depends on a proprietary volumetric measurement concept that utilizes a difference in the readings of two barometric pressure sensors to determine fluid level remaining after the container's min/max levels have been calibrate.
 Under certain conditions this method has obtained precision levels of +/- 0.7% on 275mL
 
-For more information on this project, join my discord: https://discord.gg/wsmSfeu
+For more information on this project, join my discord: https://discord.gg/uk5pQyrYk5
 
 If you're a company looking into this code, offer me a job!
 
@@ -35,3 +35,5 @@ If you're a company looking into this code, offer me a job!
 - Implement software based air pump control
 - CSV Sdcard output (may require moving SDcard module to display arduino due to memory limitations)
  Please do not redistribute without credit.
+
+QUIGZLOVESCORTANA!
